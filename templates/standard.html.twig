@@ -1,0 +1,25 @@
+{{ attach_library('iq_bef_extensions/layout_standard') }}
+
+<div class="iq-bef-layout layout-standard" data-toggable="filter">
+  <header>
+    <a class="toggle-filtern" data-toggle="filter">{{"Filter"|t}}</a>
+  </header>
+  <section>
+    <div class="row iq-row top-region form-row">
+      {{ content.top }}
+    </div>
+    <div class="row iq-row main-region form-row">
+      {{ content.main }}
+    </div>
+    <div class="row iq-row bottom-region form-row">
+      {{ content.bottom }}
+    </div>
+    <div class="row iq-row footer-region form-row">
+      {{ content.footer }}
+    </div>
+  </section>
+</div>
+
+
+
+

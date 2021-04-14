@@ -1,0 +1,113 @@
+@import 'definitions';
+
+.views-element-container>.content .view-filters .iq-bef-layout{
+  &.layout-standard{
+
+    &.active{
+      header{
+        padding: 15px;
+        a{
+          &::before{
+            transform: translateY(-50%) rotate(180deg);
+            background-size: 100% 1px, 0 0;
+          }
+        }
+      }
+      section{
+        display: block;
+      }
+    }
+
+    header{
+      padding: 15px;
+      a{
+        display: block;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: $font-size-h3;
+        line-height: $line-height-h3;
+        font-weight: $font-weight-h3;
+        font-style: $font-style-h3;
+        font-family: $font-family-h3;
+        color: $color-h3;
+        position: relative;
+        @include fluid-type(320px, 991px, $font-size-min-h3, $font-size-h3);
+        @media only screen and (min-width: 768px) {
+          cursor: inherit;
+        }
+        &::before{
+          content: '';
+          background: linear-gradient($tab-font-color,$tab-font-color), linear-gradient($tab-font-color,$tab-font-color);
+          background-position: center;
+          background-size: 100% 1px,1px 100%;
+          background-repeat: no-repeat;
+          width: 13px;
+          height: 13px;
+          position: absolute;
+          right: 4px;
+          top: 50%;
+          transform: translateY(-50%) rotate(0deg);
+          transition: $transition-default;
+        }
+
+        &::after{
+          content: '';
+          display: block;
+          width: 21px;
+          height: 21px;
+          border: 1px solid $tab-font-color;
+          border-radius: 50%;
+          position: absolute;
+          top: 50%;
+          right: 0;
+          transform: translateY(-50%);
+        }
+
+        &::before,
+        &::after{
+          @media only screen and (min-width: 768px) {
+            display: none;
+          }
+        }
+      }
+    }
+    section{
+      display: none;
+      padding-top: 15px;
+      @media only screen and (min-width: 768px) {
+        display: block;
+      }
+      .iq-row{
+        padding: 0;
+        &.main-region > .form-group,
+        &.bottom-region > .form-group{
+          @media only screen and (min-width: 768px) {
+            max-width: 33.3333%;
+          }
+        }
+        &.footer-region{
+          padding: 30px 0;
+          justify-content: flex-end;
+          > .form-submit{
+            width: auto;
+            margin: 0 15px;
+          }
+        }
+        > .form-group{
+          position: relative;
+          min-height: 1px;
+          padding-right: 15px;
+          padding-left: 15px;
+          margin: 0 0 15px;
+          flex: 1 0 100%;
+          @media only screen and (min-width: 768px) {
+            .views-element-container>.content .view-filters .iq-bef-layout.layout-standard .iq-row > .form-group{
+              flex: 1;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

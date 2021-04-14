@@ -1,0 +1,37 @@
+sliders:
+  version: 4.x
+  css:
+    theme:
+      vendor/noUiSlider/nouislider.min.css: { minified: true }
+      resources/css/sliders.css: { minified: true }
+  js:
+    vendor/noUiSlider/nouislider.min.js: { minified: true }
+    vendor/wNumb/wNumb.min.js: { minified: true }
+    resources/js/sliders.js: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
+
+advanced_selects:
+  version: 4.x
+  css:
+    theme:
+      vendor/chosen/chosen.min.css: { minified: true }
+      resources/css/advanced-selects.css: { minified: true }
+  js:
+    vendor/chosen/chosen.jquery.min.js: { minified: true }
+    resources/js/advanced-selects.js: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
+
+layout_standard:
+  version: 4.x
+  css:
+    theme:
+      resources/css/layout-standard.css: { minified: true }
+  js:
+    resources/js/layout-standard.js: {}
+  dependencies:
+    - core/drupal
+    - core/jquery

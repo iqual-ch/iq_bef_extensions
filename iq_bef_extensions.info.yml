@@ -1,0 +1,9 @@
+name: iqual BEF extesions
+description: Extensions for Better Exposed Filter module
+package: Custom
+
+type: module
+core: 8.x
+dependencies:
+  - better_exposed_filters:better_exposed_filters
+  - vefl_bef:vefl_bef
