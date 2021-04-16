@@ -16,10 +16,10 @@ advanced_selects:
   version: 4.x
   css:
     theme:
-      vendor/chosen/chosen.min.css: { minified: true }
+      vendor/select2/css/select2.min.css: { minified: true }
       resources/css/advanced-selects.css: { minified: true }
   js:
-    vendor/chosen/chosen.jquery.min.js: { minified: true }
+    vendor/select2/js/select2.full.min.js: { minified: true }
     resources/js/advanced-selects.js: {}
   dependencies:
     - core/drupal

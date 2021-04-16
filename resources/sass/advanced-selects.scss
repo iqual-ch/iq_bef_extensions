@@ -1,0 +1,58 @@
+@import 'definitions';
+
+.select2-container {
+  &.select2-container--default{
+    .select2-selection--multiple{
+      border-radius: $border-radius-base;
+      border: $border-width-base solid $border-color-base;
+    }
+    &.select2-container--focus{
+      .select2-selection--multiple{
+        border-radius: $border-radius-base;
+        border: $border-width-base solid $border-color-base;
+      }
+    }
+  }
+  .selection{
+    .select2-selection{
+      display: flex;
+      .select2-selection__rendered{
+        margin: 0;
+        display: flex;
+        &:not(:empty){
+          margin-right: 15px;
+        }
+        .select2-selection__choice{
+          margin: 0 5px 0 0;
+          background: none;
+          border: none;
+          padding: 0 0 0 10px;
+          .select2-selection__choice__remove{
+            padding: 0;
+            border: none;
+            width: 100%;
+            text-align: left;
+            &:hover,
+            &:active,
+            &:focus{
+              background: none
+            }
+          }
+        }
+      }
+
+    }
+  }
+  .select2-search--inline {
+    display: flex;
+    align-items: center;
+    .select2-search__field{
+      border: none !important;
+      font-family: inherit;
+      margin: 0;
+      font-size: inherit;
+      line-height: 1;
+      display: block;
+    }
+  }
+}

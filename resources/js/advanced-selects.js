@@ -1,4 +1,3 @@
-
 (function ($, Drupal, drupalSettings) {
   Drupal.behaviors.iq_bef_extensions_advanced_select = {
     attach: function (context, settings) {
@@ -8,12 +7,17 @@
           var $input = $("select[data-drupal-selector=" + data_selector + "]", context).once('advanced-select-filter');
           let options = {};
           if (advancedSelectOptions.placeholder) {
-            options.placeholder_text_multiple = advancedSelectOptions.placeholder;
+            options.placeholder = advancedSelectOptions.placeholder;
           }
           if (advancedSelectOptions.no_results_text) {
-            options.no_results_text = advancedSelectOptions.no_results_text;
+            options.language = {
+              "noResults": function(){
+                return advancedSelectOptions.no_results_text;
+              }
+            };
           }
-          $input.chosen(options);
+          options.closeOnSelect = false;
+          $chosen = $input.select2(options);
         });
       }
     }
