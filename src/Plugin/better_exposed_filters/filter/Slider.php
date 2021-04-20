@@ -25,6 +25,7 @@ class Slider extends FilterWidgetBase {
       'max' => 1000,
       'step' => 1,
       'margin' => 10,
+      'auto_submit' => FALSE,
       'tooltip_factor' => 1,
       'tooltip_thousand_separator' => '',
       'tooltip_decimal_separator' => '.',
@@ -58,6 +59,12 @@ class Slider extends FilterWidgetBase {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
+
+    $form['auto_submit'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Auto submit after change'),
+      '#default_value' => $this->configuration['auto_submit'],
+    ];
 
     $form['min'] = [
       '#type' => 'number',
@@ -189,6 +196,7 @@ class Slider extends FilterWidgetBase {
       'max' => $this->configuration['max'],
       'step' => $this->configuration['step'],
       'margin' => $this->configuration['margin'],
+      'auto_submit' => $this->configuration['auto_submit'],
       'id' => Html::getUniqueId($field_id),
       'dataSelector' => Html::getId($field_id),
       'viewId' => $form['#id'],

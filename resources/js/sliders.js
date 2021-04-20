@@ -89,6 +89,11 @@
             $slider[0].noUiSlider.on('update', function (values, handle) {
               $(snapValues[handle]).val(values[handle]);
             });
+            if (sliderOptions.auto_submit) {
+              $slider[0].noUiSlider.on('change', function (values, handle) {
+                $slider.closest('form').find('[data-drupal-selector*="edit-submit"]').click()
+              });
+            }
           }
         })
       }
