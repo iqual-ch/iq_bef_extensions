@@ -4,7 +4,9 @@ namespace Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter;
 
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\better_exposed_filters\Plugin\better_exposed_filters\filter\FilterWidgetBase;
+use Drupal\better_exposed_filters\Plugin\better_exposed_filters\filter\DefaultWidget;
+use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\views\Views;
 
 /**
  * Select implementation using the chosen JS library.
@@ -14,7 +16,7 @@ use Drupal\better_exposed_filters\Plugin\better_exposed_filters\filter\FilterWid
  *   label = @Translation("Advanced Select"),
  * )
  */
-class AdvancedSelect extends FilterWidgetBase {
+class AdvancedSelect extends DefaultWidget {
 
   /**
    * {@inheritdoc}
@@ -23,6 +25,8 @@ class AdvancedSelect extends FilterWidgetBase {
     return parent::defaultConfiguration() + [
       'placeholder' => $this->t('- All -'),
       'no_results_text' => NULL,
+      'auto_submit' => FALSE,
+      'remove_unused_items' => FALSE,
     ];
   }
 
@@ -35,14 +39,13 @@ class AdvancedSelect extends FilterWidgetBase {
 
     // The date filter handler extends the numeric filter handler so we have
     // to exclude it specifically.
-    $is_numeric_filter = is_a($filter, 'Drupal\views\Plugin\views\filter\NumericFilter');
-    $is_range_filter = is_a($filter, 'Drupal\range\Plugin\views\filter\Range');
-    $is_date_filter = is_a($filter, 'Drupal\views\Plugin\views\filter\Date');
-    if (($is_numeric_filter || $is_range_filter) && !$is_date_filter && !$filter->isAGroup()) {
+    $is_chs = is_a($filter, 'Drupal\cshs\Plugin\views\filter\CshsTaxonomyIndexTid');;
+    if (($is_chs) && !$filter->isAGroup()) {
       $is_applicable = TRUE;
     }
 
-    return TRUE;
+    return $is_applicable;
+
   }
 
   /**
@@ -50,6 +53,12 @@ class AdvancedSelect extends FilterWidgetBase {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
+
+    $form['auto_submit'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Auto submit after change'),
+      '#default_value' => $this->configuration['auto_submit'],
+    ];
 
     $form['placeholder'] = [
       '#type' => 'textfield',
@@ -64,6 +73,13 @@ class AdvancedSelect extends FilterWidgetBase {
       '#min' => 0,
     ];
 
+    $form['remove_unused_items'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Remove unused items'),
+      '#default_value' => $this->configuration['remove_unused_items'],
+      '#min' => 0,
+    ];
+
     return $form;
   }
 
@@ -71,17 +87,98 @@ class AdvancedSelect extends FilterWidgetBase {
    * {@inheritdoc}
    */
   public function exposedFormAlter(array &$form, FormStateInterface $form_state) {
-    $field_id = $this->getExposedFilterFieldId();
+    $fieldId = $this->getExposedFilterFieldId();
     parent::exposedFormAlter($form, $form_state);
-    $form[$field_id]['#attached']['library'][] = 'iq_bef_extensions/advanced_selects';
+    $form[$fieldId]['#attached']['library'][] = 'iq_bef_extensions/advanced_selects';
 
-    $form[$field_id]['#attached']['drupalSettings']['iq_bef_extensions']['advanced_selects'] = TRUE;
-    $form[$field_id]['#attached']['drupalSettings']['iq_bef_extensions']['advanced_selects_options'][$field_id] = [
-      'id' => Html::getUniqueId($field_id),
-      'dataSelector' => Html::getId($field_id),
+    $filter = $this->handler;
+    $this->view = $this->view;
+
+    if ($filter->isExposed() && !empty($this->configuration['remove_unused_items'])) {
+
+      if (empty($this->view->selective_filter)) {
+        $view = Views::getView($this->view->id());
+        $view->selective_filter = TRUE;
+        $view->setArguments($this->view->args);
+        $view->setItemsPerPage(0);
+        $view->setDisplay($this->view->current_display);
+        $view->preExecute();
+        $view->execute();
+
+        if (!empty($view->result)) {
+          $hierarchy = !empty($filter->options['hierarchy']);
+          $field_id = $filter->definition['field_name'];
+          $relationship = $filter->options['relationship'];
+          $element = &$form[$fieldId];
+
+          $ids = [];
+          foreach ($view->result as $row) {
+            $entity = $row->_entity;
+            if ($relationship != 'none') {
+              $entity = $row->_relationship_entities[$relationship] ?? FALSE;
+            }
+            if ($entity instanceof FieldableEntityInterface && $entity->hasField($field_id)) {
+              $term_values = $entity->get($field_id)->getValue();
+
+              if (!empty($term_values)) {
+                foreach ($term_values as $term_value) {
+                  $tid = $term_value['target_id'];
+                  $ids[$tid] = $tid;
+
+                  if ($hierarchy) {
+                    $parents = \Drupal::service('entity_type.manager')
+                      ->getStorage("taxonomy_term")
+                      ->loadAllParents($tid);
+
+                    foreach ($parents as $term) {
+                      $ids[$term->id()] = $term->id();
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          if (!empty($element['#options'])) {
+            foreach ($element['#options'] as $key => $option) {
+              if ($key == 'All') {
+                continue;
+              }
+
+              $target_id = $key;
+              if (is_object($option) && !empty($option->option)) {
+                $target_id = array_keys($option->option);
+                $target_id = reset($target_id);
+              }
+              if (!in_array($target_id, $ids)) {
+                unset($element['#options'][$key]);
+              }
+            }
+          }
+        }
+      }
+//       else {
+//         if (!empty($this->configuration['remove_unused_items_view_filtered'])) {
+//           $user_input = $form_state->getUserInput();
+//           if (isset($user_input[$fieldId])) {
+//             unset($user_input[$fieldId]);
+//           }
+//         }
+//         else {
+//           $user_input = [];
+//         }
+// //        $form_state->setUserInput($user_input);
+//       }
+    }
+
+    $form[$fieldId]['#attached']['drupalSettings']['iq_bef_extensions']['advanced_selects'] = TRUE;
+    $form[$fieldId]['#attached']['drupalSettings']['iq_bef_extensions']['advanced_selects_options'][$fieldId] = [
+      'id' => Html::getUniqueId($fieldId),
+      'dataSelector' => Html::getId($fieldId),
       'viewId' => $form['#id'],
       'placeholder' => $this->configuration['placeholder'],
       'no_results_text' => $this->configuration['no_results_text'],
+      'auto_submit' => $this->configuration['auto_submit'],
     ];
   }
 
