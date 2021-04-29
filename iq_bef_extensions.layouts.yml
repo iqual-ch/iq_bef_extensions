@@ -4,11 +4,11 @@ standard:
   template: templates/standard
   default_region: main
   regions:
-    top:
-      label: 'Top Row (Full width fields)'
-    main:
-      label: 'Main (Flex fields, max 25%)'
-    bottom:
-      label: 'Bottom (Flex fields, max 25%)'
-    footer:
-      label: 'Footer (Right aligned)'
+    filters:
+      label: "Filters"
+    sorting:
+      label: "Sorting"
+    actions:
+      label: "Actions"
+    pagination:
+      label: "Pagination"

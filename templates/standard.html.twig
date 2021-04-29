@@ -5,17 +5,16 @@
     <a class="toggle-filtern" data-toggle="filter">{{"Filter"|t}}</a>
   </header>
   <section>
-    <div class="row iq-row top-region form-row">
-      {{ content.top }}
-    </div>
-    <div class="row iq-row main-region form-row">
-      {{ content.main }}
-    </div>
-    <div class="row iq-row bottom-region form-row">
-      {{ content.bottom }}
+    <div class="row iq-row filters-region form-row">
+      {{ content.filters }}
     </div>
     <div class="row iq-row footer-region form-row">
-      {{ content.footer }}
+      <div class="col sorting-region">
+        <div class="title">{{"Sorting"|t}}</div>{{ content.sorting }}
+      </div>
+      <div class="col actions-region">
+        {{ content.actions }}
+      </div>
     </div>
   </section>
 </div>

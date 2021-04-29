@@ -5,6 +5,7 @@ namespace Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter;
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\better_exposed_filters\Plugin\better_exposed_filters\filter\FilterWidgetBase;
+use Drupal\views\Views;
 
 /**
  * Slider implementation using the noUiSlider JS library.
@@ -32,6 +33,8 @@ class Slider extends FilterWidgetBase {
       'tooltip_scale' => 2,
       'tooltip_prefix' => '',
       'tooltip_suffix' => '',
+      'apply_filter_text' => $this->t('OK'),
+      'reset_filter_text' => $this->t('Reset'),
     ];
   }
 
@@ -92,6 +95,20 @@ class Slider extends FilterWidgetBase {
       '#type' => 'number',
       '#title' => $this->t('Margin'),
       '#default_value' => $this->configuration['margin'],
+      '#min' => 0,
+    ];
+
+    $form['apply_filter_text'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Button text for apply filter'),
+      '#default_value' => $this->configuration['apply_filter_text'],
+      '#min' => 0,
+    ];
+
+    $form['reset_filter_text'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Button text for reset filter'),
+      '#default_value' => $this->configuration['reset_filter_text'],
       '#min' => 0,
     ];
 
@@ -183,23 +200,69 @@ class Slider extends FilterWidgetBase {
    * {@inheritdoc}
    */
   public function exposedFormAlter(array &$form, FormStateInterface $form_state) {
-    $field_id = $this->getExposedFilterFieldId();
+    $fieldId = $this->getExposedFilterFieldId();
 
     parent::exposedFormAlter($form, $form_state);
+    $filter = $this->handler;
+    $this->view = $this->view;
 
-    $form[$field_id]['#attached']['library'][] = 'iq_bef_extensions/sliders';
+    $form[$fieldId]['#attached']['library'][] = 'iq_bef_extensions/sliders';
+    $histogramNumOfBins = intval($this->configuration['step']);
+
+    $valueHistogram = array_fill(0, $histogramNumOfBins, 0);
+    if (empty($this->view->histogram_data_loaded)) {
+      $view = Views::getView($this->view->id());
+      $view->histogram_data_loaded = TRUE;
+      $view->selective_filter = TRUE;
+      $view->setArguments($this->view->args);
+      $view->setItemsPerPage(0);
+      $view->setDisplay($this->view->current_display);
+      $view->preExecute();
+      $view->execute();
+      if (\count($view->result)) {
+        $histogramNormalizeFactor = 100 / \count($view->result);
+        $histogramMin = 99999999999999;
+        $histogramMax = 0;
+        foreach ($view->result as $row) {
+          $histogramMin = min($histogramMin, floatval($row->_entity->{str_replace("_value", "", $fieldId)}->value));
+          $histogramMax = max($histogramMax, floatval($row->_entity->{str_replace("_value", "", $fieldId)}->value));
+        }
+
+        $histogramNumOfBins = \floor(min(20, ($histogramMax - $histogramMin) / (floatval($this->configuration['tooltip_factor']) / 10)));
+        $valueHistogram = array_fill(0, $histogramNumOfBins, 0);
+
+        if ($histogramNumOfBins) {
+          $histogramBinWidth = ($histogramMax - $histogramMin) / $histogramNumOfBins;
+          foreach ($view->result as $row) {
+            $index = \floor((floatval($row->_entity->{str_replace("_value", "", $fieldId)}->value) - $histogramMin) / $histogramBinWidth);
+            $index = min($index, \count($valueHistogram) - 1);
+            $valueHistogram[$index] += $histogramNormalizeFactor;
+          }
+        }
+      }
+    }
+    else {
+      $userInput = $form_state->getUserInput();
+      if (isset($userInput[$fieldId])) {
+        unset($userInput[$fieldId]);
+      }
+      $form_state->setUserInput($userInput);
+    }
 
     // Set the slider settings.
-    $form[$field_id]['#attached']['drupalSettings']['iq_bef_extensions']['slider'] = TRUE;
-    $form[$field_id]['#attached']['drupalSettings']['iq_bef_extensions']['slider_options'][$field_id] = [
-      'min' => $this->configuration['min'],
-      'max' => $this->configuration['max'],
-      'step' => $this->configuration['step'],
+    $form[$fieldId]['#attached']['drupalSettings']['iq_bef_extensions']['slider'] = TRUE;
+    $form[$fieldId]['#attached']['drupalSettings']['iq_bef_extensions']['slider_options'][$fieldId] = [
+      'min' => isset($histogramMin) ? $histogramMin : $this->configuration['min'],
+      'max' => isset($histogramMax) ? $histogramMax : $this->configuration['max'],
+      'step' => isset($histogramBinWidth) ? $histogramBinWidth : $this->configuration['step'],
       'margin' => $this->configuration['margin'],
       'auto_submit' => $this->configuration['auto_submit'],
-      'id' => Html::getUniqueId($field_id),
-      'dataSelector' => Html::getId($field_id),
+      'id' => Html::getUniqueId($fieldId),
+      'dataSelector' => Html::getId($fieldId),
       'viewId' => $form['#id'],
+      'value_histogram' => $valueHistogram,
+      'apply_filter_text' => $this->configuration['apply_filter_text'],
+      'reset_filter_text' => $this->configuration['reset_filter_text'],
       'tooltip_settings' => [
         'factor' => $this->configuration['tooltip_factor'],
         'thousand_separator' => $this->configuration['tooltip_thousand_separator'],

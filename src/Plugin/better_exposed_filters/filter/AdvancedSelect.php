@@ -23,7 +23,6 @@ class AdvancedSelect extends DefaultWidget {
    */
   public function defaultConfiguration() {
     return parent::defaultConfiguration() + [
-      'placeholder' => $this->t('- All -'),
       'no_results_text' => NULL,
       'auto_submit' => FALSE,
       'remove_unused_items' => FALSE,
@@ -58,12 +57,6 @@ class AdvancedSelect extends DefaultWidget {
       '#type' => 'checkbox',
       '#title' => $this->t('Auto submit after change'),
       '#default_value' => $this->configuration['auto_submit'],
-    ];
-
-    $form['placeholder'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Placeholder'),
-      '#default_value' => $this->configuration['placeholder'],
     ];
 
     $form['no_results_text'] = [
@@ -157,18 +150,6 @@ class AdvancedSelect extends DefaultWidget {
           }
         }
       }
-//       else {
-//         if (!empty($this->configuration['remove_unused_items_view_filtered'])) {
-//           $user_input = $form_state->getUserInput();
-//           if (isset($user_input[$fieldId])) {
-//             unset($user_input[$fieldId]);
-//           }
-//         }
-//         else {
-//           $user_input = [];
-//         }
-// //        $form_state->setUserInput($user_input);
-//       }
     }
 
     $form[$fieldId]['#attached']['drupalSettings']['iq_bef_extensions']['advanced_selects'] = TRUE;
@@ -176,7 +157,7 @@ class AdvancedSelect extends DefaultWidget {
       'id' => Html::getUniqueId($fieldId),
       'dataSelector' => Html::getId($fieldId),
       'viewId' => $form['#id'],
-      'placeholder' => $this->configuration['placeholder'],
+      'placeholder' => $form[$fieldId]['#title'],
       'no_results_text' => $this->configuration['no_results_text'],
       'auto_submit' => $this->configuration['auto_submit'],
     ];

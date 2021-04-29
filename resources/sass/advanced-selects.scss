@@ -1,10 +1,18 @@
 @import 'definitions';
 
-.select2-container {
+
+
+
+.select2.select2-container {
+  display: block;
   &.select2-container--default{
     .select2-selection{
       border-radius: $border-radius-base;
       border: $border-width-base solid $border-color-base;
+      padding: 0;
+      padding: .375rem .75rem;
+      font-size: 1rem;
+      line-height: 1.5;
     }
     &.select2-container--focus{
       .select2-selection{
@@ -12,21 +20,63 @@
         border: $border-width-base solid $border-color-base;
       }
     }
+    &.select2-container--open{
+      &::before{
+        transform: translateY(-50%) scaleY(-1);
+      }
+    }
+    &::before{
+      content: "\f078";
+      font-weight: 900;
+      font-family: "Font Awesome 5 Free";
+      -moz-osx-font-smoothing: grayscale;
+      -webkit-font-smoothing: antialiased;
+      display: inline-block;
+      font-style: normal;
+      font-variant: normal;
+      text-rendering: auto;
+      line-height: 1;
+      position: absolute;
+      right: .75rem;
+      z-index: 10;
+      top: 50%;
+      transform: translateY(-50%);
+      transition: $transition-default;
+      font-size: 0.875rem;
+      color: inherit;
+    }
+
   }
+
+
+
+
+
+
+
   .selection{
     .select2-selection{
       display: flex;
+      flex-direction: column;
+      cursor: pointer;
       .select2-selection__rendered{
         margin: 0;
+        width: 100%;
         display: flex;
-        &:not(:empty){
-          margin-right: 15px;
+
+        &:empty{
+          display: none;
+          + .select2-search--inline{
+            display: block;
+          }
         }
         .select2-selection__choice{
           margin: 0 5px 0 0;
           background: none;
           border: none;
-          padding: 0 0 0 10px;
+          padding: 1px 0 0 10px;
+          flex-shrink: 0;
+          margin-bottom: -1px;
           .select2-selection__choice__remove{
             padding: 0;
             border: none;
@@ -38,21 +88,48 @@
               background: none
             }
           }
+          .select2-selection__choice__display{
+            font-size: 0.75rem;
+            line-height: 1.5rem;
+            display: block;
+          }
+        }
+        .select2-selection__count{
+          font-size: 0.75rem;
+          line-height: 1.5rem;
+          padding-top: 1px;
+          margin-bottom: -1px;
+        }
+        .select2-selection__label{
+          font-size: 0.875rem;
+          line-height: 1.5rem;
+          padding-right: 15px;
         }
       }
-
+      .select2-search{
+//        display: none
+      }
     }
   }
   .select2-search--inline {
-    display: flex;
-    align-items: center;
+    display: none;
     .select2-search__field{
       border: none !important;
       font-family: inherit;
       margin: 0;
-      font-size: inherit;
-      line-height: 1;
+      font-size: 0.875rem;
+      line-height: 1.5rem;
+      height: 1.5rem;
       display: block;
+      cursor: pointer;
+
+
     }
+    ::-webkit-input-placeholder,
+    :-ms-input-placeholder,
+    ::placeholder{
+      color: $color-standard;
+    }
+
   }
 }

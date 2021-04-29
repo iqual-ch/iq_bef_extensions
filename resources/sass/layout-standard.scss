@@ -79,33 +79,176 @@
       }
       .iq-row{
         padding: 0;
-        &.main-region > .form-group,
-        &.bottom-region > .form-group{
-          @media only screen and (min-width: 768px) {
-            max-width: 33.3333%;
+        &.filters-region{
+          padding-bottom: 15px;
+          > .form-group{
+            margin: 0;
+            padding: 15px;
+            flex: 1;
+            flex-basis: 100%;
+            @media only screen and (min-width: 768px) {
+              flex-basis: 50%;
+              max-width: 50%;
+            }
+
+            @media only screen and (min-width: 1200px) {
+              flex-basis: 25%;
+              max-width: 25%;
+            }
+
+            // only one child
+            &:first-child:last-child{
+              flex-basis: 100%;
+              max-width: none;
+            }
+
+            // excatly 2 children
+            &:nth-child(1):nth-last-child(2),
+            &:nth-child(2):nth-last-child(1){
+              @media only screen and (min-width: 768px) {
+                flex-basis: 50%;
+                max-width: 50%;
+              }
+            }
+
+            // excatly 3 children
+            &:nth-child(1):nth-last-child(3),
+            &:nth-child(2):nth-last-child(2),
+            &:nth-child(3):nth-last-child(1){
+              @media only screen and (min-width: 768px) {
+                flex-basis: 33.33333%;
+                max-width: 33.33333%;
+              }
+            }
+
+            label{
+              display: none;
+            }
+
+
           }
         }
+
         &.footer-region{
-          padding: 30px 0;
-          justify-content: flex-end;
-          > .form-submit{
-            width: auto;
+
+          .sorting-region,
+          .actions-region{
+            padding-top: 15px;
+            border-top: 1px solid $border-color-base;
             margin: 0 15px;
+            padding: 30px 0 30px;
+            flex-basis: calc( 100% - 30px );
+            @media only screen and (min-width: 768px) {
+              padding: 30px 0 0;
+              -ms-flex: 0 0 calc( 50% - 15px );
+              flex: 0 0 calc( 50% - 15px );
+              max-width: calc( 50% - 15px );
+            }
+
+            > .form-group{
+              margin: 0;
+            }
           }
-        }
-        > .form-group{
-          position: relative;
-          min-height: 1px;
-          padding-right: 15px;
-          padding-left: 15px;
-          margin: 0 0 15px;
-          flex: 1 0 100%;
-          @media only screen and (min-width: 768px) {
-            .views-element-container>.content .view-filters .iq-bef-layout.layout-standard .iq-row > .form-group{
-              flex: 1;
+
+          .sorting-region{
+            display: flex;
+            align-items: center;
+            @media only screen and (min-width: 768px) {
+              margin-right: 0;
+            }
+            > .title {
+              margin: 0 15px 0 0;
+            }
+            > .form-group{
+
+              position: relative;
+              @media only screen and (min-width: 768px) {
+                margin: 0 15px;
+              }
+              &.active{
+                &::after{
+                  transform: translateY(-50%) scaleY(-1);
+                }
+              }
+              &::after{
+                content: "\f078";
+                font-weight: 900;
+                font-family: "Font Awesome 5 Free";
+                -moz-osx-font-smoothing: grayscale;
+                -webkit-font-smoothing: antialiased;
+                display: inline-block;
+                font-style: normal;
+                font-variant: normal;
+                text-rendering: auto;
+                line-height: 1;
+                position: absolute;
+                right: 0.75rem;
+                top: 50%;
+                transform: translateY(-50%);
+                transition: $transition-default;
+                font-size: 0.875rem;
+                color: inherit;
+              }
+              select{
+                font-size: 0.875rem;
+                line-height: 1.5rem;
+                font-weight: 300;
+                -moz-appearance:none; /* Firefox */
+                -webkit-appearance:none; /* Safari and Chrome */
+                appearance:none;
+              }
+            }
+          }
+
+          .actions-region{
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            padding-bottom: 15px;
+            @media only screen and (min-width: 768px) {
+              margin-left: 0;
+              padding-bottom: 30px;
+            }
+            > .form-submit{
+              width: auto;
+              margin: 0;
+              &[data-drupal-selector^="edit-reset"]{
+                margin-right: 30px;
+              }
             }
           }
         }
+
+
+
+        // &.main-region > .form-group,
+        // &.bottom-region > .form-group{
+        //   @media only screen and (min-width: 768px) {
+        //     max-width: 33.3333%;
+        //   }
+        // }
+        // &.footer-region{
+        //   padding: 30px 0;
+        //   justify-content: flex-end;
+        //   > .form-submit{
+        //     width: auto;
+        //     margin: 0 15px;
+        //   }
+        // }
+        // > .form-group{
+        //   position: relative;
+        //   min-height: 1px;
+        //   padding-right: 15px;
+        //   padding-left: 15px;
+        //   margin: 0 0 15px;
+        //   flex: 1 0 100%;
+        //   @media only screen and (min-width: 768px) {
+        //     .views-element-container>.content .view-filters .iq-bef-layout.layout-standard .iq-row > .form-group{
+        //       flex: 1;
+        //     }
+        //   }
+        // }
       }
     }
   }
