@@ -138,7 +138,7 @@
             margin: 0 15px;
             padding: 30px 0 30px;
             flex-basis: calc( 100% - 30px );
-            @media only screen and (min-width: 768px) {
+            @media only screen and (min-width: 1200px) {
               padding: 30px 0 0;
               -ms-flex: 0 0 calc( 50% - 15px );
               flex: 0 0 calc( 50% - 15px );
@@ -208,7 +208,7 @@
             padding-bottom: 15px;
             @media only screen and (min-width: 768px) {
               margin-left: 0;
-              padding-bottom: 30px;
+              padding-bottom: 0;
             }
             > .form-submit{
               width: auto;
