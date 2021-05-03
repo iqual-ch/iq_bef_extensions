@@ -12,6 +12,7 @@
       $('.sorting-region select').change(function(){
         $(this).parent().removeClass('active');
         $(this).blur();
+        $(this).closest('form').find('[data-drupal-selector*="edit-submit"]').click()
       })
     }
   }
