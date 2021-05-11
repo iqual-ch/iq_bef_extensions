@@ -134,7 +134,7 @@ class AdvancedSelect extends DefaultWidget {
 
           if (!empty($element['#options'])) {
             foreach ($element['#options'] as $key => $option) {
-              if ($key == 'All') {
+              if ($key === 'All') {
                 continue;
               }
 
