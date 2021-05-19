@@ -1,6 +1,11 @@
 (function ($, Drupal, drupalSettings) {
   Drupal.behaviors.iq_bef_extensions_advanced_select = {
     attach: function (context, settings) {
+      if (!window.initBefPlugins) {
+        window.initBefPlugins = [];
+      }
+      var promise = $.Deferred();
+      window.initBefPlugins.push(promise);
       $('.select2-container--open').remove();
       if (drupalSettings.iq_bef_extensions.advanced_selects) {
         $.each(drupalSettings.iq_bef_extensions.advanced_selects_options, function (i, advancedSelectOptions) {
@@ -99,6 +104,7 @@
           }
         });
       }
+      promise.resolve();
     }
   }
 

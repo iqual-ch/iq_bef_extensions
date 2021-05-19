@@ -8,7 +8,8 @@ sliders:
     vendor/noUiSlider/nouislider.min.js: { minified: true }
     vendor/wNumb/wNumb.min.js: { minified: true }
     resources/js/sliders.js: {}
-  dependencies:
+    resources/js/init.js: { }
+    dependencies:
     - core/drupal
     - core/jquery
 
@@ -21,6 +22,7 @@ advanced_selects:
   js:
     vendor/select2/js/select2.full.min.js: { minified: true }
     resources/js/advanced-selects.js: {}
+    resources/js/init.js:  { }
   dependencies:
     - core/drupal
     - core/jquery

@@ -2,6 +2,12 @@
 (function ($, Drupal, drupalSettings) {
   Drupal.behaviors.iq_bef_extensions_slider = {
     attach: function (context, settings) {
+      if (!window.initBefPlugins) {
+        window.initBefPlugins = [];
+      }
+      var promise = $.Deferred();
+      window.initBefPlugins.push(promise);
+
       if (drupalSettings.iq_bef_extensions.slider) {
         $.each(drupalSettings.iq_bef_extensions.slider_options, function (i, sliderOptions) {
           var data_selector = 'edit-' + sliderOptions.dataSelector;
@@ -164,6 +170,7 @@
           }
         })
       }
+      promise.resolve();
     }
   }
 
