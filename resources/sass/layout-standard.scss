@@ -79,6 +79,7 @@
       }
       .iq-row{
         padding: 0;
+        flex-wrap: wrap;
         &.filters-region{
           padding-bottom: 15px;
           > .form-group{
@@ -134,12 +135,18 @@
             border-top: 1px solid $border-color-base;
             margin: 0 15px;
             padding: 30px 0 30px;
-            flex-basis: calc( 100% - 30px );
+            // flex-basis: calc( 100% - 30px );
+            flex: 1;
+            flex-basis: 100%;
+            @media only screen and (min-width: 768px) {
+              flex-basis: auto;
+            }
+
             @media only screen and (min-width: 1200px) {
               padding: 30px 0 0;
-              -ms-flex: 0 0 calc( 50% - 15px );
-              flex: 0 0 calc( 50% - 15px );
-              max-width: calc( 50% - 15px );
+              // -ms-flex: 0 0 calc( 50% - 15px );
+              // flex: 0 0 calc( 50% - 15px );
+              // max-width: calc( 50% - 15px );
             }
 
             > .form-group{
@@ -200,7 +207,6 @@
             display: flex;
             justify-content: flex-end;
             align-items: flex-start;
-            flex-wrap: wrap;
             padding-bottom: 15px;
             @media only screen and (min-width: 768px) {
               margin-left: 0;

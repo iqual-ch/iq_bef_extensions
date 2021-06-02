@@ -9,18 +9,14 @@
       {{ content.filters }}
     </div>
     <div class="row iq-row footer-region form-row">
+      {% if content.sorting|render|striptags|trim is not empty %}
       <div class="col sorting-region">
-        {% if content.sorting|render|striptags|trim is not empty %}
         <div class="title">{{"Sorting"|t}}</div>{{ content.sorting }}
-        {% endif %}
       </div>
+      {% endif %}
       <div class="col actions-region">
         {{ content.actions }}
       </div>
     </div>
   </section>
 </div>
-
-
-
-

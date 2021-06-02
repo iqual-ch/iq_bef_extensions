@@ -11,7 +11,9 @@
         $.each(drupalSettings.iq_bef_extensions.advanced_selects_options, function (i, advancedSelectOptions) {
           var data_selector = 'edit-' + advancedSelectOptions.dataSelector;
           var $input = $("select[data-drupal-selector=" + data_selector + "]", context).once('advanced-select-filter');
-          let options = {};
+          let options = {
+            'width': '100%',
+          };
           if (advancedSelectOptions.placeholder) {
             options.placeholder = advancedSelectOptions.placeholder;
           }
@@ -109,4 +111,3 @@
   }
 
 })(jQuery, Drupal, drupalSettings);
-
