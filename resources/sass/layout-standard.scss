@@ -124,6 +124,8 @@
 
             label{
               display: none;
+              white-space: nowrap;
+              overflow: hidden;
             }
           }
         }
