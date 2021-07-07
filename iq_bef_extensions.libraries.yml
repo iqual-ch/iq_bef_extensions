@@ -9,7 +9,7 @@ sliders:
     vendor/wNumb/wNumb.min.js: { minified: true }
     resources/js/sliders.js: {}
     resources/js/init.js: { }
-    dependencies:
+  dependencies:
     - core/drupal
     - core/jquery
 
