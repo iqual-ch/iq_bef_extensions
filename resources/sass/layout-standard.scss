@@ -208,17 +208,23 @@
           .actions-region{
             display: flex;
             justify-content: flex-end;
-            align-items: flex-start;
+
             padding-bottom: 15px;
+            flex-wrap: wrap;
             @media only screen and (min-width: 768px) {
               margin-left: 0;
               padding-bottom: 0;
+              align-items: flex-start;
             }
             > .form-submit{
               width: auto;
               margin: 0;
               &[data-drupal-selector^="edit-reset"]{
-                margin-right: 30px;
+                margin-bottom: 30px;
+                @media only screen and (min-width: 768px) {
+                  margin-bottom: 0;
+                  margin-right: 30px;
+                }
               }
             }
           }

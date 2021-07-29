@@ -45,23 +45,23 @@
           $chosen = $input.select2(options);
           let $ul = $input.parent().find('ul').removeClass('has-counter');
           $ul.prepend('<li class="select2-selection__label">' + $ul.closest('.js-form-item').find('label').text() + '</li>');
-          let maxWidth = $ul.parent().width();
+          let maxWidth = $ul.parent().innerWidth();
           let width = 0;
           let count = 0;
-          $ul.find('li').each(function(){
-            width += $(this).width();
-            $(this).show();
-            if (width + 35 > maxWidth) {
-              count++;
-              $(this).remove();
+          if (maxWidth > 0) {
+            $ul.find('li').each(function(){
+              width += $(this).innerWidth();
+              $(this).show();
+              if (width + 35 > maxWidth) {
+                count++;
+                $(this).remove();
+              }
+            });
+            if (count) {
+              $ul.addClass('has-counter');
+              $ul.append('<li class="select2-selection__count">+' + count + '</li>')
             }
-          });
-          if (count) {
-            $ul.addClass('has-counter');
-            $ul.append('<li class="select2-selection__count">+' + count + '</li>')
           }
-
-
 
           $input.on('select2:select select2:unselect', function (e) {
             let $ul = $input.parent().find('ul').removeClass('has-counter');
