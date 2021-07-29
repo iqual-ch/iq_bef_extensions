@@ -91,6 +91,7 @@
                 e.preventDefault();
                 $(this).closest('.iq-bef-slider-holder').toggleClass('active');
                 if (sliderOptions.auto_submit && !$(this).closest('.iq-bef-slider-holder').hasClass('active')) {
+                  window.view_filter_show_active = true;
                   $slider.closest('form').find('[data-drupal-selector*="edit-submit"]').click()
                 }
               });
@@ -156,6 +157,7 @@
                     $slider[0].noUiSlider.set([ parseFloat(sliderOptions.min), parseFloat(sliderOptions.max)]);
                     $slider.closest('.iq-bef-slider-holder').find('.preview-values').text("");
                     $slider.closest('.iq-bef-slider-holder').toggleClass('active');
+                    window.view_filter_show_active = true;
                     $slider.closest('form').find('[data-drupal-selector*="edit-submit"]').click()
                   });
                   if (!$slider.closest('.dropdown').find('.reset-slider').length) {

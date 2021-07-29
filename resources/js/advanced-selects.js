@@ -92,7 +92,8 @@
             var selectedValues;
             $input.on('select2:close', function (e) {
               if (selectedValues.filter(x => !$input.val().includes(x)).concat($input.val().filter(x => !selectedValues.includes(x))).length) {
-                $input.closest('form').find('[data-drupal-selector*="edit-submit"]').click()
+                window.view_filter_show_active = true;
+                $input.closest('form').find('[data-drupal-selector*="edit-submit"]').click();
               }
             });
             $input.on('select2:opening', function (e) {
@@ -100,6 +101,7 @@
             });
             $input.on('select2:unselect', function (e) {
               if (!$input.select2("isOpen")) {
+                window.view_filter_show_active = true;
                 $input.closest('form').find('[data-drupal-selector*="edit-submit"]').click()
               }
             });
