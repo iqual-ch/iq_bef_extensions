@@ -218,7 +218,7 @@
             }
             > .form-submit{
               width: auto;
-              margin: 0;
+              margin: 0 0 0 30px;
               &[data-drupal-selector^="edit-reset"]{
                 margin-bottom: 30px;
                 @media only screen and (min-width: 768px) {
