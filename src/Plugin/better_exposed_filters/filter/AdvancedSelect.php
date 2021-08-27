@@ -33,18 +33,7 @@ class AdvancedSelect extends DefaultWidget {
    * {@inheritdoc}
    */
   public static function isApplicable($filter = NULL, array $filter_options = []) {
-    /** @var \Drupal\views\Plugin\views\filter\FilterPluginBase $filter */
-    $is_applicable = FALSE;
-
-    // The date filter handler extends the numeric filter handler so we have
-    // to exclude it specifically.
-    $is_chs = is_a($filter, 'Drupal\cshs\Plugin\views\filter\CshsTaxonomyIndexTid');;
-    if (($is_chs) && !$filter->isAGroup()) {
-      $is_applicable = TRUE;
-    }
-
-    return $is_applicable;
-
+    return ( $filter_options && $filter_options['type'] == 'select' );
   }
 
   /**
