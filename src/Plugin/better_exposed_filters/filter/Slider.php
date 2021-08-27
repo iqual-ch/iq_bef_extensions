@@ -252,8 +252,8 @@ class Slider extends FilterWidgetBase {
     // Set the slider settings.
     $form[$fieldId]['#attached']['drupalSettings']['iq_bef_extensions']['slider'] = TRUE;
     $form[$fieldId]['#attached']['drupalSettings']['iq_bef_extensions']['slider_options'][$fieldId] = [
-      'min' => isset($histogramMin) ? $histogramMin : $this->configuration['min'],
-      'max' => isset($histogramMax) ? $histogramMax : $this->configuration['max'],
+      'min' => isset($histogramMin) && $histogramMin > 0 ? $histogramMin : $this->configuration['min'],
+      'max' => isset($histogramMax) && $histogramMax > 0 ? $histogramMax : $this->configuration['max'],
       'step' => isset($histogramBinWidth) ? $histogramBinWidth : $this->configuration['step'],
       'margin' => $this->configuration['margin'],
       'auto_submit' => $this->configuration['auto_submit'],
