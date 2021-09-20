@@ -38,6 +38,15 @@
                 defaultMin = parseFloat(($min.val() == '') ? sliderOptions.min : $min.val()),
                 defaultMax = parseFloat(($max.val() == '') ? sliderOptions.max : $max.val());
 
+
+            if (sessionStorage.getItem(sliderOptions.dataSelector + '-min')) {
+              defaultMin = parseFloat(sessionStorage.getItem(sliderOptions.dataSelector + '-min'));
+            }
+
+            if (sessionStorage.getItem(sliderOptions.dataSelector + '-max')) {
+              defaultMax = parseFloat(sessionStorage.getItem(sliderOptions.dataSelector + '-max'));
+            }
+
             // Set the element value in case we are using the slider min & max.
             $min.val(defaultMin);
             $max.val(defaultMax);
@@ -163,6 +172,9 @@
                   if (!$slider.closest('.dropdown').find('.reset-slider').length) {
                     $slider.closest('.dropdown').prepend($btnReset);
                   }
+
+                  sessionStorage[sliderOptions.dataSelector + '-min'] = values[0];
+                  sessionStorage[sliderOptions.dataSelector + '-max'] = values[1];
                 }
               });
 

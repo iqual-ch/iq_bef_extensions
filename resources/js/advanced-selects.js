@@ -109,6 +109,12 @@
         });
       }
       promise.resolve();
+      if (!window.form_submitted) {
+        if ($('.bef-exposed-form').serializeArray().map(function(el){if (el.name == 'sort_bef_combine') {return '';}; return el.value}).join('').length) {
+          $('.bef-exposed-form').find('[data-drupal-selector*="edit-submit"]').click();
+        }
+        window.form_submitted = true;
+      }
     }
   }
 
