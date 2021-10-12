@@ -3,7 +3,8 @@ description: Extensions for Better Exposed Filter module
 package: Custom
 
 type: module
-core: 8.x
+core_version_requirement: ^8.8 || ^9
+
 dependencies:
   - better_exposed_filters:better_exposed_filters
   - vefl_bef:vefl_bef
