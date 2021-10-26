@@ -9,7 +9,7 @@
     }
   ],
   "require": {
-    "drupal/better_exposed_filters": "*",
-    "drupal/vefl_bef": "*"
+    "drupal/better_exposed_filters": "^5.0",
+    "drupal/vefl_bef": "^3.0"
   }
 }
