@@ -5,7 +5,7 @@
       $(document).on("iq-bef-extionsions-init", function(){
         if (drupalSettings.iq_bef_extensions.slider) {
           $.each(drupalSettings.iq_bef_extensions.slider_options, function (i, sliderOptions) {
-            var data_selector = 'edit-' + sliderOptions.dataSelector;
+            var data_selector = 'edit-' + sliderOptions.dataSelector.replace('-wrapper', '');
 
             // Collect all possible input fields for this filter.
             var $inputs = $("input[data-drupal-selector=" + data_selector + "], input[data-drupal-selector=" + data_selector + "-max], input[data-drupal-selector=" + data_selector + "-min]", context).once('slider-filter');
@@ -40,15 +40,21 @@
               fieldNameMax = $max.attr('name');
 
 
-              // Move max next to Min field
-              $maxParent = $max.parent();
-              $max.appendTo($min.parent());
-              $maxParent.remove();
-              $min.parent().addClass('iq-bef-slider-holder');
-              $min.parent().children().wrapAll('<div class="form-control">');
+              let $wrapper = $min.closest('.js-form-wrapper');
+              $wrapper.addClass('iq-bef-slider-holder');
+
+              let $formControl = $('<div class="form-control"></div>');
+              $formControl.append($min);
+              $formControl.append($max);
+              $wrapper.append($formControl);
+
+              let $label = $('<label>' + $wrapper.find('.fieldset-legend').text() + '</label>');
+              $formControl.append($label);
 
               $preview = $('<div class="preview-values">');
-              $max.closest('.iq-bef-slider-holder').find('label').append($preview);
+              $label.append($preview);
+
+              $wrapper.children('.fieldset-wrapper, legend').remove();
 
               // Setup histogram
               if (sliderOptions.min == sliderOptions.max) {

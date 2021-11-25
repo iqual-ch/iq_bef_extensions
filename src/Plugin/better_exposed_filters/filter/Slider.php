@@ -200,7 +200,7 @@ class Slider extends FilterWidgetBase {
    * {@inheritdoc}
    */
   public function exposedFormAlter(array &$form, FormStateInterface $form_state) {
-    $fieldId = $this->getExposedFilterFieldId();
+    $fieldId = $this->getExposedFilterFieldId() . '_wrapper';
 
     parent::exposedFormAlter($form, $form_state);
     $filter = $this->handler;
@@ -224,8 +224,8 @@ class Slider extends FilterWidgetBase {
         $histogramMin = 99999999999999;
         $histogramMax = 0;
         foreach ($view->result as $row) {
-          $histogramMin = min($histogramMin, floatval($row->_entity->{str_replace("_value", "", $fieldId)}->value));
-          $histogramMax = max($histogramMax, floatval($row->_entity->{str_replace("_value", "", $fieldId)}->value));
+          $histogramMin = min($histogramMin, floatval($row->_entity->{str_replace("_value_wrapper", "", $fieldId)}->value));
+          $histogramMax = max($histogramMax, floatval($row->_entity->{str_replace("_value_wrapper", "", $fieldId)}->value));
         }
 
         $histogramNumOfBins = \floor(min(20, ($histogramMax - $histogramMin) / (floatval($this->configuration['tooltip_factor']) / 10)));
@@ -234,7 +234,7 @@ class Slider extends FilterWidgetBase {
         if ($histogramNumOfBins) {
           $histogramBinWidth = ($histogramMax - $histogramMin) / $histogramNumOfBins;
           foreach ($view->result as $row) {
-            $index = \floor((floatval($row->_entity->{str_replace("_value", "", $fieldId)}->value) - $histogramMin) / $histogramBinWidth);
+            $index = \floor((floatval($row->_entity->{str_replace("_value_wrapper", "", $fieldId)}->value) - $histogramMin) / $histogramBinWidth);
             $index = min($index, \count($valueHistogram) - 1);
             $valueHistogram[$index] += $histogramNormalizeFactor;
           }
@@ -243,8 +243,8 @@ class Slider extends FilterWidgetBase {
     }
     else {
       $userInput = $form_state->getUserInput();
-      if (isset($userInput[$fieldId])) {
-        unset($userInput[$fieldId]);
+      if (isset($userInput[str_replace("_wrapper", "", $fieldId)])) {
+        unset($userInput[str_replace("_wrapper", "", $fieldId)]);
       }
       $form_state->setUserInput($userInput);
     }
