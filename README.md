@@ -23,3 +23,9 @@ Install module as usual:
 
     composer require iqual/iq_bef_extensions
     drush en iq_bef_extensions
+
+
+If you want to work with layouts, make sure VEFL is compatible with BEF 5 by applying this patch:
+
+    composer patch-add drupal/vefl "Fix BEF 5 compatibility issue" https://www.drupal.org/files/issues/2020-07-28/3161777-fix-VeflBef.patch
+
