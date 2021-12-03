@@ -78,4 +78,23 @@
     });
   });
 
+  $(document).ready(function () {
+
+    // Apply stored filters on page load
+    let formdata =  JSON.parse(sessionStorage.getItem("formStorage"));
+    if (formdata) {
+      Object.keys(formdata).forEach(function(key){
+        let refresh = Object.keys(formdata[key]).length;
+        if (refresh) {
+          $('#' + key).find($('[data-drupal-selector*="edit-submit"]')).click();
+        }
+      });
+    }
+
+    $(document).on('change', '[name="sort_bef_combine"]', function(){
+      $(this).closest('form').find($('[data-drupal-selector*="edit-submit"]')).click();
+    })
+
+  });
+
 })(jQuery, Drupal, drupalSettings);
