@@ -13,8 +13,8 @@ use Drupal\Core\Entity\FieldableEntityInterface;
 function iq_bef_extensions_form_views_exposed_form_alter(&$form, FormStateInterface $form_state, $form_id) {
 
   // Check if BEF form.
-  if (array_key_exists('bef', $form_state->get('view')->storage->getDisplay($form_state->get('view')->current_display)['display_options']['exposed_form']['options'])) {
-
+  $displayOptions = $form_state->get('view')->storage->getDisplay($form_state->get('view')->current_display);
+  if ($displayOptions && array_key_exists('display_options', $displayOptions) && array_key_exists('exposed_form', $displayOptions['display_options']) && array_key_exists('options', $displayOptions['display_options']['exposed_form'])) {
     if (empty($form_state->get('view')->selective_filter)) {
       $view = $form_state->get('view');
       $exposedFilters = array_filter($view->filter, function ($item) {
