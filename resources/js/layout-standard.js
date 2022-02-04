@@ -26,6 +26,10 @@
         $(this).parent().addClass('active')
       });
 
+      $('.sorting-region select').blur(function(){
+        $(this).parent().removeClass('active')
+      });
+
       $('.sorting-region select').change(function(){
         $(this).parent().removeClass('active');
         $(this).blur();

@@ -1,7 +1,22 @@
 @import 'definitions';
 
+.iq-bef-input-wrapper.advanced-select{
+  > label {
+    display: none;
+  }
+}
 
-
+// Select dropdown
+.select2-container.select2-container--open{
+  .select2-dropdown{
+    border-radius: 0;
+    border: $border-width-base solid $border-color-base;
+  }
+  .select2-results__option--highlighted.select2-results__option--selectable{
+    background-color: $color-grey5;
+    color: $color-standard;
+  }
+}
 
 .select2.select2-container {
   display: block;
@@ -64,7 +79,7 @@
         margin: 0;
         width: 100%;
         display: flex;
-
+        padding-right: 1.5rem;
         &:empty{
           display: none;
           + .select2-search--inline{

@@ -1,0 +1,127 @@
+<?php
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\views\Views;
+use Drupal\Core\Entity\FieldableEntityInterface;
+
+/**
+ * Implements hook_form_views_exposed_form_alter().
+ *
+ * Removes all exposed filters where the corresponding field
+ * is not set in any of the view's results.
+ */
+function iq_bef_extensions_form_views_exposed_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+
+  // Check if BEF form.
+  if (array_key_exists('bef', $form_state->get('view')->storage->getDisplay($form_state->get('view')->current_display)['display_options']['exposed_form']['options'])) {
+
+    if (empty($form_state->get('view')->selective_filter)) {
+      $view = $form_state->get('view');
+      $exposedFilters = array_filter($view->filter, function ($item) {
+        return $item->isExposed();
+      });
+
+      $exposedFilters = array_map(function ($filter) use ($form) {
+        $formField = str_replace('_value', '_value_wrapper', $filter->field);
+        $filter->iq_bef_settings = $form[$formField]['#attached']['drupalSettings']['iq_bef_extensions']['filters'][$formField];
+        return $filter;
+      }, $exposedFilters);
+
+      $exposedFilterValues = [];
+
+      $viewTMP = Views::getView($view->id());
+      $viewTMP->selective_filter = TRUE;
+      $viewTMP->setArguments($view->args);
+      $viewTMP->setItemsPerPage(0);
+      $viewTMP->setDisplay($view->current_display);
+      $viewTMP->preExecute();
+      $viewTMP->execute();
+
+      foreach ($viewTMP->result as $row) {
+
+        foreach ($exposedFilters as $key => $filter) {
+          $entity = $row->_entity;
+          $relationship = $filter->options['relationship'];
+          $field = str_replace('_target_id', '', str_replace('_value', '', $filter->options['field']));
+          if ($relationship != 'none') {
+            $entity = $row->_relationship_entities[$relationship] ?? FALSE;
+          }
+
+          if ($entity instanceof FieldableEntityInterface && $entity->hasField($field)) {
+            if (!empty($entity->get($field)->getValue())) {
+              if (!array_key_exists($key, $exposedFilterValues)) {
+                $exposedFilterValues[$key] = [];
+              }
+              switch ($filter->iq_bef_settings['type']) {
+                case 'slider':
+                  $exposedFilterValues[$key][] = $entity->get($field)->getValue()[0]['value'];
+                  break;
+
+                case 'advanced_select':
+                  $exposedFilterValues[$key] = array_merge($exposedFilterValues[$key], array_map(function ($option) {
+                    return $option['target_id'];
+                  }, $entity->get($field)->getValue()));
+                  break;
+              }
+            }
+          }
+        }
+      }
+
+      foreach ($exposedFilters as $key => $exposedFilter) {
+        if ($exposedFilter->iq_bef_settings) {
+
+          // Remove filter if unused.
+          if ($exposedFilter->iq_bef_settings['remove_unused_filter']) {
+            if (!array_key_exists($key, $exposedFilterValues)) {
+              $form[str_replace('_value', '_value_wrapper', $key)] = NULL;
+              unset($form[str_replace('_value', '_value_wrapper', $key)]);
+              unset($view->filter[$key]);
+              continue;
+            }
+          }
+
+          // Alter filter if necessary.
+          switch ($exposedFilter->iq_bef_settings['type']) {
+            case 'advanced_select':
+              if ($exposedFilter->iq_bef_settings['remove_unused_items']) {
+                $form[$key]['#options'] = array_intersect_key($form[$key]['#options'], array_flip($exposedFilterValues[$key]));
+              }
+              break;
+
+            case 'slider':
+
+              $step = $exposedFilter->iq_bef_settings['step'];
+
+              if (isset($exposedFilter->iq_bef_settings['histogram_num_of_bins'])) {
+                $step = ($exposedFilter->iq_bef_settings['max'] - $exposedFilter->iq_bef_settings['min']) / $exposedFilter->iq_bef_settings['histogram_num_of_bins'];
+              }
+
+              $min = $exposedFilter->iq_bef_settings['min'];
+              $max = $exposedFilter->iq_bef_settings['max'];
+
+              $bins = range($min, $max, $step);
+              array_pop($bins);
+
+              $numOfBins = count($bins);
+              $numOfValues = count($exposedFilterValues[$key]);
+
+              $dist = array_count_values(array_map(function ($num) use ($min, $max, $numOfBins) {
+                return intval(floor(($num - $min) / $max * $numOfBins));
+              }, $exposedFilterValues[$key]));
+
+              array_walk($bins, function (&$value, $num) use ($dist, $numOfValues) {
+                $value = array_key_exists($num, $dist) ? $dist[$num] / $numOfValues * 100 : 0;
+              });
+
+              $form[$key . '_wrapper']["#attached"]["drupalSettings"]["iq_bef_extensions"]["filters"][$key . '_wrapper']["value_histogram"] = $bins;
+
+              break;
+
+          }
+        }
+      }
+      $form_state->set('view', $view);
+    }
+  }
+}

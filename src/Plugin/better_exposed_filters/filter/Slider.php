@@ -25,7 +25,7 @@ class Slider extends FilterWidgetBase {
       'min' => 0,
       'max' => 1000,
       'step' => 1,
-      'margin' => 10,
+      'histogram_num_of_bins' => 20,
       'auto_submit' => FALSE,
       'tooltip_factor' => 1,
       'tooltip_thousand_separator' => '',
@@ -35,6 +35,7 @@ class Slider extends FilterWidgetBase {
       'tooltip_suffix' => '',
       'apply_filter_text' => $this->t('OK'),
       'reset_filter_text' => $this->t('Reset'),
+      'remove_unused_filter' => FALSE,
     ];
   }
 
@@ -69,6 +70,13 @@ class Slider extends FilterWidgetBase {
       '#default_value' => $this->configuration['auto_submit'],
     ];
 
+    $form['remove_unused_filter'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t("Remove filter if not used"),
+      '#description' => $this->t("Remove the filter if it doesn't affect the results."),
+      '#default_value' => $this->configuration['remove_unused_filter'],
+    ];
+
     $form['min'] = [
       '#type' => 'number',
       '#title' => $this->t('Range minimum'),
@@ -91,11 +99,10 @@ class Slider extends FilterWidgetBase {
       '#min' => 0,
     ];
 
-    $form['margin'] = [
+    $form['histogram_num_of_bins'] = [
       '#type' => 'number',
-      '#title' => $this->t('Margin'),
-      '#default_value' => $this->configuration['margin'],
-      '#min' => 0,
+      '#title' => $this->t('Number of bins in the histogram'),
+      '#default_value' => $this->configuration['histogram_num_of_bins'],
     ];
 
     $form['apply_filter_text'] = [
@@ -210,52 +217,14 @@ class Slider extends FilterWidgetBase {
     $histogramNumOfBins = intval($this->configuration['step']);
 
     $valueHistogram = array_fill(0, $histogramNumOfBins, 0);
-    if (empty($this->view->histogram_data_loaded)) {
-      $view = Views::getView($this->view->id());
-      $view->histogram_data_loaded = TRUE;
-      $view->selective_filter = TRUE;
-      $view->setArguments($this->view->args);
-      $view->setItemsPerPage(0);
-      $view->setDisplay($this->view->current_display);
-      $view->preExecute();
-      $view->execute();
-      if (\count($view->result)) {
-        $histogramNormalizeFactor = 100 / \count($view->result);
-        $histogramMin = 99999999999999;
-        $histogramMax = 0;
-        foreach ($view->result as $row) {
-          $histogramMin = min($histogramMin, floatval($row->_entity->{str_replace("_value_wrapper", "", $fieldId)}->value));
-          $histogramMax = max($histogramMax, floatval($row->_entity->{str_replace("_value_wrapper", "", $fieldId)}->value));
-        }
-
-        $histogramNumOfBins = \floor(min(20, ($histogramMax - $histogramMin) / (floatval($this->configuration['tooltip_factor']) / 10)));
-        $valueHistogram = array_fill(0, $histogramNumOfBins, 0);
-
-        if ($histogramNumOfBins) {
-          $histogramBinWidth = ($histogramMax - $histogramMin) / $histogramNumOfBins;
-          foreach ($view->result as $row) {
-            $index = \floor((floatval($row->_entity->{str_replace("_value_wrapper", "", $fieldId)}->value) - $histogramMin) / $histogramBinWidth);
-            $index = min($index, \count($valueHistogram) - 1);
-            $valueHistogram[$index] += $histogramNormalizeFactor;
-          }
-        }
-      }
-    }
-    else {
-      $userInput = $form_state->getUserInput();
-      if (isset($userInput[str_replace("_wrapper", "", $fieldId)])) {
-        unset($userInput[str_replace("_wrapper", "", $fieldId)]);
-      }
-      $form_state->setUserInput($userInput);
-    }
 
     // Set the slider settings.
-    $form[$fieldId]['#attached']['drupalSettings']['iq_bef_extensions']['slider'] = TRUE;
-    $form[$fieldId]['#attached']['drupalSettings']['iq_bef_extensions']['slider_options'][$fieldId] = [
+    $form[$fieldId]['#attached']['drupalSettings']['iq_bef_extensions']['filters'][$fieldId] = [
+      'type' => 'slider',
       'min' => isset($histogramMin) && $histogramMin > 0 ? $histogramMin : $this->configuration['min'],
       'max' => isset($histogramMax) && $histogramMax > 0 ? $histogramMax : $this->configuration['max'],
       'step' => isset($histogramBinWidth) ? $histogramBinWidth : $this->configuration['step'],
-      'margin' => $this->configuration['margin'],
+      'histogram_num_of_bins' => $this->configuration['histogram_num_of_bins'],
       'auto_submit' => $this->configuration['auto_submit'],
       'id' => Html::getUniqueId($fieldId),
       'dataSelector' => Html::getId($fieldId),
@@ -271,6 +240,7 @@ class Slider extends FilterWidgetBase {
         'prefix' => $this->configuration['tooltip_prefix'],
         'suffix' => $this->configuration['tooltip_suffix'],
       ],
+      'remove_unused_filter' => !empty($this->configuration['remove_unused_filter']),
     ];
   }
 

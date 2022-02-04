@@ -1,5 +1,12 @@
 @import 'definitions';
 
+.iq-bef-input-wrapper.slider{
+  > legend,
+  label {
+    display: none;
+  }
+}
+
 .iq-bef-slider-holder{
   &.active{
     .form-control{
@@ -20,8 +27,7 @@
     border: $border-width-base solid $border-color-base;
     .preview-values{
       font-size: 0.75rem;
-      padding: 7px 0 0 15px;
-      line-height: 1;
+      padding-left: 0.75rem;
     }
     label{
       display: flex !important;
@@ -31,6 +37,7 @@
       position: relative;
       font-size: 0.875rem;
       line-height: 1.5rem;
+      padding-right: 1.5rem;
 
       &:not(.locked)::after{
         content: "\f078";
@@ -61,12 +68,12 @@
   .dropdown{
     position: absolute;
     display: none;
-    left: 15px;
-    right: 15px;
+    left: 0;
+    right: 0;
     border: $border-width-base solid $border-color-base;
     border-top: none;
     background: $color-white;
-    z-index: 10;
+    z-index: 100;
 
     padding: 15px;
 
@@ -99,7 +106,6 @@
         border: none;
         outline: none;
         cursor: pointer;
-        position: absolute;
         z-index: 2;
         &::before{
           font-weight: 900;
@@ -134,7 +140,6 @@
           div{
             background: $color-primary;
             flex: 1;
-            margin: 0 1px;
           }
         }
       }
@@ -171,8 +176,8 @@
             .noUi-touch-area{
               &::before{
                 content: "";
-                width: 300px;
-                height: 300px;
+                width: 100vw;
+                height: 100vw;
                 position: absolute;
                 bottom: 100%;
                 background: rgba($color-white,0.8);
