@@ -74,6 +74,13 @@ function iq_bef_extensions_form_views_exposed_form_alter(&$form, FormStateInterf
           // Remove filter if unused.
           if ($exposedFilter->iq_bef_settings['remove_unused_filter']) {
             if (!array_key_exists($key, $exposedFilterValues)) {
+
+              if ($exposedFilter->iq_bef_settings['type'] == 'slider') {
+                if (array_key_exists($key, $form_state->getUserInput()) && !empty($form_state->getUserInput()[$key]['min'] . $form_state->getUserInput()[$key]['min'])) {
+                  continue;
+                }
+              }
+
               $form[str_replace('_value', '_value_wrapper', $key)] = NULL;
               unset($form[str_replace('_value', '_value_wrapper', $key)]);
               unset($view->filter[$key]);
@@ -121,7 +128,7 @@ function iq_bef_extensions_form_views_exposed_form_alter(&$form, FormStateInterf
           }
         }
       }
-      $form_state->set('view', $view);
+      // $form_state->set('view', $view);
     }
   }
 }
