@@ -33,7 +33,7 @@ class AdvancedSelect extends DefaultWidget {
    * {@inheritdoc}
    */
   public static function isApplicable($filter = NULL, array $filter_options = []) {
-    return ( $filter_options && $filter_options['type'] == 'select' );
+    return ($filter_options && ($filter_options['type'] == 'select' || $filter_options['widget'] == 'select'));
   }
 
   /**
