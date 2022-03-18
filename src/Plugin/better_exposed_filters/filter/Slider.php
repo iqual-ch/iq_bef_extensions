@@ -4,8 +4,6 @@ namespace Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter;
 
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\better_exposed_filters\Plugin\better_exposed_filters\filter\FilterWidgetBase;
-use Drupal\views\Views;
 
 /**
  * Slider implementation using the noUiSlider JS library.
@@ -15,7 +13,7 @@ use Drupal\views\Views;
  *   label = @Translation("Slider"),
  * )
  */
-class Slider extends FilterWidgetBase {
+class Slider extends DefaultWidget {
 
   /**
    * {@inheritdoc}
@@ -207,23 +205,52 @@ class Slider extends FilterWidgetBase {
    * {@inheritdoc}
    */
   public function exposedFormAlter(array &$form, FormStateInterface $form_state) {
-    $fieldId = $this->getExposedFilterFieldId() . '_wrapper';
-
     parent::exposedFormAlter($form, $form_state);
+    $fieldId = $this->getExposedFilterFieldId() . '_wrapper';
     $filter = $this->handler;
-    $this->view = $this->view;
+    $element = &$form[$fieldId];
+    $step = intval($this->configuration['step']);
+    $valueHistogram = array_fill(0, $step, 0);
+    $element['#attached']['library'][] = 'iq_bef_extensions/sliders';
 
-    $form[$fieldId]['#attached']['library'][] = 'iq_bef_extensions/sliders';
-    $histogramNumOfBins = intval($this->configuration['step']);
+    if ($filter->isExposed() && empty($form_state->getUserInput()[$fieldId])) {
+      [$table, $column] = $this->getTableAndColumn();
+      if (empty($this->view->selective_filter) && !empty($table) && !empty($column)) {
+        $entityIds = $this->getEntityIds();
+        $ids = $this->getReferencedValues($entityIds, $table, $column);
 
-    $valueHistogram = array_fill(0, $histogramNumOfBins, 0);
+        if ($ids !== NULL) {
+          $histogramNumOfBins = (intval($this->configuration['histogram_num_of_bins'])) ?: NULL;
+          $min = intval($this->configuration['min']);
+          $max = intval($this->configuration['max']);
+
+          if ($histogramNumOfBins) {
+            $step = ($max - $min) / $histogramNumOfBins;
+          }
+
+          $valueHistogram = range($min, $max, $step);
+          array_pop($valueHistogram);
+
+          $numOfBins = count($valueHistogram);
+          $numOfValues = count($ids);
+
+          $dist = array_count_values(array_map(function ($num) use ($min, $max, $numOfBins) {
+            return intval(floor(($num - $min) / $max * $numOfBins));
+          }, $ids));
+
+          array_walk($valueHistogram, function (&$value, $num) use ($dist, $numOfValues) {
+            $value = array_key_exists($num, $dist) ? $dist[$num] / $numOfValues * 100 : 0;
+          });
+        }
+      }
+    }
 
     // Set the slider settings.
-    $form[$fieldId]['#attached']['drupalSettings']['iq_bef_extensions']['filters'][$fieldId] = [
+    $element['#attached']['drupalSettings']['iq_bef_extensions']['filters'][$fieldId] = [
       'type' => 'slider',
-      'min' => isset($histogramMin) && $histogramMin > 0 ? $histogramMin : $this->configuration['min'],
-      'max' => isset($histogramMax) && $histogramMax > 0 ? $histogramMax : $this->configuration['max'],
-      'step' => isset($histogramBinWidth) ? $histogramBinWidth : $this->configuration['step'],
+      'min' => $this->configuration['min'],
+      'max' => $this->configuration['max'],
+      'step' => $this->configuration['step'],
       'histogram_num_of_bins' => $this->configuration['histogram_num_of_bins'],
       'auto_submit' => $this->configuration['auto_submit'],
       'id' => Html::getUniqueId($fieldId),

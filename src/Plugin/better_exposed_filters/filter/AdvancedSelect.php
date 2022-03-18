@@ -4,7 +4,6 @@ namespace Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter;
 
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\better_exposed_filters\Plugin\better_exposed_filters\filter\DefaultWidget;
 
 /**
  * Select implementation using the chosen JS library.
@@ -78,7 +77,19 @@ class AdvancedSelect extends DefaultWidget {
     parent::exposedFormAlter($form, $form_state);
     $form[$fieldId]['#attached']['library'][] = 'iq_bef_extensions/advanced_selects';
 
-    $form[$fieldId]['#attached']['drupalSettings']['iq_bef_extensions']['filters'][$fieldId] = [
+    $filter = $this->handler;
+    $element = &$form[$fieldId];
+
+    if ($filter->isExposed() && !empty($this->configuration['remove_unused_items']) && empty($form_state->getUserInput()[$fieldId])) {
+      [$table, $column] = $this->getTableAndColumn();
+      if (empty($this->view->selective_filter) && !empty($table) && !empty($column)) {
+        $entityIds = $this->getEntityIds();
+        $ids = $this->getReferencedValues($entityIds, $table, $column);
+        $this->filterElementWithOptions($element, $ids);
+      }
+    }
+
+    $element['#attached']['drupalSettings']['iq_bef_extensions']['filters'][$fieldId] = [
       'id' => Html::getUniqueId($fieldId),
       'filter_id' => $fieldId,
       'type' => 'advanced_select',
