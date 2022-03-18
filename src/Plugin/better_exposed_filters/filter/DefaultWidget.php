@@ -14,7 +14,7 @@ class DefaultWidget extends FilterWidgetBase {
   /**
    * Contains the entity ids per view.
    *
-   * @var string[]
+   * @var array[]
    */
   protected static $entityIds = [];
 
@@ -26,26 +26,29 @@ class DefaultWidget extends FilterWidgetBase {
    * @return array
    *   The entity ids present in the view.
    */
-  protected function getEntityIds(): array {
+  protected function getEntityIds($relationship = 'none'): array {
 
     $viewKey = $this->view->id() . '_' . $this->view->current_display;
 
     // Only execute view once per request.
-    if (!isset(self::$entityIds[$viewKey])) {
+    if (!isset(self::$entityIds[$viewKey]['none'])) {
 
       // Execute the view using the total row query.
       $view = Views::getView($this->view->id());
-      $view->selective_filter = TRUE;
-      $view->setArguments($this->view->args);
-      $view->get_total_rows = TRUE;
       $view->setDisplay($this->view->current_display);
+      $view->setArguments($this->view->args);
+      $view->setItemsPerPage(0);
+      $view->selective_filter = TRUE;
+      $view->get_total_rows = TRUE;
       $view->preExecute();
       $view->execute();
 
       $entityIdKey = $view->getBaseEntityType()->getKeys()['id'];
 
-      // Create array for entity ids.
+      // Create arrays for entity ids.
       self::$entityIds[$viewKey] = [];
+      // Index none contains the base entity type ids.
+      self::$entityIds[$viewKey]['none'] = [];
 
       // Retrieve the result from the view query.
       /** @var \Drupal\Core\Database\Query\Select $query */
@@ -57,18 +60,24 @@ class DefaultWidget extends FilterWidgetBase {
           // Handling search api.
           $match = [];
           preg_match('/([\d]+)/', $record->getId(), $match);
-          self::$entityIds[$viewKey][] = $match[0];
+          self::$entityIds[$viewKey]['none'][] = $match[0];
         }
         else {
           // Handling database query.
-          self::$entityIds[$viewKey][] = $record->{$entityIdKey};
+          self::$entityIds[$viewKey]['none'][] = $record->{$entityIdKey};
         }
       }
-      return self::$entityIds[$viewKey];
     }
-    else {
-      return self::$entityIds[$viewKey];
+    if ($relationship != 'none' && !isset(self::$entityIds[$viewKey][$relationship])) {
+      if (!empty($this->view->relationship[$relationship])) {
+        $relHandler = $this->view->relationship[$relationship];
+        self::$entityIds[$viewKey][$relationship] = $this->getReferencedValues(self::$entityIds[$viewKey]['none'], $relHandler->table, $relHandler->realField);
+      }
+      else {
+        throw new \UnexpectedValueException('The given relationship cannot be found in the view.');
+      }
     }
+    return self::$entityIds[$viewKey][$relationship];
   }
 
   /**
@@ -145,5 +154,4 @@ class DefaultWidget extends FilterWidgetBase {
       }
     }
   }
-
 }

@@ -213,35 +213,40 @@ class Slider extends DefaultWidget {
     $valueHistogram = array_fill(0, $step, 0);
     $element['#attached']['library'][] = 'iq_bef_extensions/sliders';
 
-    if ($filter->isExposed() && empty($form_state->getUserInput()[$fieldId])) {
+    if ($filter->isExposed()
+    && empty($this->view->selective_filter)
+    && empty($form_state->getUserInput()[$fieldId])) {
+
       [$table, $column] = $this->getTableAndColumn();
-      if (empty($this->view->selective_filter) && !empty($table) && !empty($column)) {
-        $entityIds = $this->getEntityIds();
-        $ids = $this->getReferencedValues($entityIds, $table, $column);
+      $relationship = ($filter->options['relationship']) ? $filter->options['relationship'] : 'none';
+      $entityIds = $this->getEntityIds($relationship);
+      $ids = $this->getReferencedValues($entityIds, $table, $column);
 
-        if ($ids !== NULL) {
-          $histogramNumOfBins = (intval($this->configuration['histogram_num_of_bins'])) ?: NULL;
-          $min = intval($this->configuration['min']);
-          $max = intval($this->configuration['max']);
+      if (empty($ids) && !empty($this->configuration['remove_unused_filter'])) {
+        $element['#access'] = FALSE;
+      }
+      else {
+        $histogramNumOfBins = (intval($this->configuration['histogram_num_of_bins'])) ?: NULL;
+        $min = intval($this->configuration['min']);
+        $max = intval($this->configuration['max']);
 
-          if ($histogramNumOfBins) {
-            $step = ($max - $min) / $histogramNumOfBins;
-          }
-
-          $valueHistogram = range($min, $max, $step);
-          array_pop($valueHistogram);
-
-          $numOfBins = count($valueHistogram);
-          $numOfValues = count($ids);
-
-          $dist = array_count_values(array_map(function ($num) use ($min, $max, $numOfBins) {
-            return intval(floor(($num - $min) / $max * $numOfBins));
-          }, $ids));
-
-          array_walk($valueHistogram, function (&$value, $num) use ($dist, $numOfValues) {
-            $value = array_key_exists($num, $dist) ? $dist[$num] / $numOfValues * 100 : 0;
-          });
+        if ($histogramNumOfBins) {
+          $step = ($max - $min) / $histogramNumOfBins;
         }
+
+        $valueHistogram = range($min, $max, $step);
+        array_pop($valueHistogram);
+
+        $numOfBins = count($valueHistogram);
+        $numOfValues = count($ids);
+
+        $dist = array_count_values(array_map(function ($num) use ($min, $max, $numOfBins) {
+          return intval(floor(($num - $min) / $max * $numOfBins));
+        }, $ids));
+
+        array_walk($valueHistogram, function (&$value, $num) use ($dist, $numOfValues) {
+          $value = array_key_exists($num, $dist) ? $dist[$num] / $numOfValues * 100 : 0;
+        });
       }
     }
 

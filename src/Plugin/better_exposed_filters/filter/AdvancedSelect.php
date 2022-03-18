@@ -80,11 +80,19 @@ class AdvancedSelect extends DefaultWidget {
     $filter = $this->handler;
     $element = &$form[$fieldId];
 
-    if ($filter->isExposed() && !empty($this->configuration['remove_unused_items']) && empty($form_state->getUserInput()[$fieldId])) {
+    if ($filter->isExposed()
+      && empty($this->view->selective_filter)
+      && !empty($this->configuration['remove_unused_items'])
+      && empty($form_state->getUserInput()[$fieldId])) {
+
+      $relationship = ($filter->options['relationship']) ? $filter->options['relationship'] : 'none';
+      $entityIds = $this->getEntityIds($relationship);
       [$table, $column] = $this->getTableAndColumn();
-      if (empty($this->view->selective_filter) && !empty($table) && !empty($column)) {
-        $entityIds = $this->getEntityIds();
-        $ids = $this->getReferencedValues($entityIds, $table, $column);
+      $ids = $this->getReferencedValues($entityIds, $table, $column);
+      if (empty($ids) && !empty($this->configuration['remove_unused_filter'])) {
+        $element['#access'] = FALSE;
+      }
+      else {
         $this->filterElementWithOptions($element, $ids);
       }
     }

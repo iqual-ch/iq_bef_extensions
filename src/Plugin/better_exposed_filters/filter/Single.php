@@ -87,21 +87,23 @@ class Single extends DefaultWidget {
       if (in_array($input_value, array_keys($form[$field_id]['#options'])) && $input_value !== 'All') {
         $checked = (bool) $input_value;
       }
-      if ($filter->isExposed() && !empty($this->configuration['remove_unused_items']) && !$checked) {
+      if ($filter->isExposed()
+      && empty($this->view->selective_filter)
+      && !empty($this->configuration['remove_unused_items'])
+      && !$checked) {
         [$table, $column] = $this->getTableAndColumn();
-        if (empty($this->view->selective_filter) && !empty($table) && !empty($column)) {
-          $entityIds = $this->getEntityIds();
-          $count = \Drupal::database()
-            ->select($table, 't')
-            ->condition('t.entity_id', $entityIds, 'IN')
-            ->condition('t.' . $column, 0, '<>')
-            ->fields('t', [$column])
-            ->countQuery()
-            ->execute()
-            ->fetchField();
-          if ($count < 1) {
-            $form[$field_id]['#access'] = FALSE;
-          }
+        $relationship = ($filter->options['relationship']) ? $filter->options['relationship'] : 'base';
+        $entityIds = $this->getEntityIds($relationship);
+        $count = \Drupal::database()
+          ->select($table, 't')
+          ->condition('t.entity_id', $entityIds, 'IN')
+          ->condition('t.' . $column, 0, '<>')
+          ->fields('t', [$column])
+          ->countQuery()
+          ->execute()
+          ->fetchField();
+        if ($count < 1) {
+          $form[$field_id]['#access'] = FALSE;
         }
       }
       if (!isset($form[$field_id]['#access']) || !$form[$field_id]['#access']) {
