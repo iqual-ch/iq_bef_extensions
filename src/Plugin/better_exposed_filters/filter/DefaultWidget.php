@@ -119,7 +119,9 @@ class DefaultWidget extends FilterWidgetBase {
       try {
         $result = \Drupal::database()->select($table, 't')->condition('t.entity_id', $entityIds, 'IN')->fields('t', [$column])->execute();
         foreach ($result as $record) {
-          $ids[] = $record->{$column};
+          if ($record->{$column}) {
+            $ids[] = $record->{$column};
+          }
         }
       }
       catch (\Exception $e) {
