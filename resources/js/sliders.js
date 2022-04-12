@@ -130,8 +130,14 @@
 
               // Setup Slider
               let tooltipFactor = parseFloat(options.tooltip_settings.factor);
-              var sliderMin = Math.ceil(options.min / ( tooltipFactor / 10 )) * tooltipFactor / 10;
-              var sliderMax = Math.ceil(options.max / ( tooltipFactor / 10 )) * tooltipFactor / 10;
+
+              let sliderMin = parseFloat(options.min);
+              let sliderMax = parseFloat(options.max);
+
+              if (tooltipFactor > 1) {
+                sliderMin = Math.ceil(options.min / ( tooltipFactor / 10 )) * tooltipFactor / 10;
+                sliderMax = Math.ceil(options.max / ( tooltipFactor / 10 )) * tooltipFactor / 10;
+              }
 
               var defaultMin = parseFloat($min.val());
               var defaultMax = parseFloat($max.val());
@@ -194,8 +200,8 @@
 
               $slider[0].noUiSlider.on('change', function (values, handle) {
 
-                let valueMin = parseInt(values[0]),
-                valueMax = parseInt(values[1]);
+                let valueMin = parseFloat(values[0]),
+                valueMax = parseFloat(values[1]);
 
                 if (!(valueMin == sliderMin && valueMax == sliderMax)) {
                   Drupal.storeFilterValues(formId, fieldNameMin, valueMin);
@@ -203,7 +209,7 @@
                   $min.val(valueMin);
                   $max.val(valueMax);
                 } else {
-                  if (!(defaultMin == startMin && defaultMax == startMax)) {
+                  if (!(defaultMin == sliderMin && defaultMax == sliderMax)) {
                     $min.val('');
                     $max.val('');
                     Drupal.resetFilterValue(formId, fieldNameMin);

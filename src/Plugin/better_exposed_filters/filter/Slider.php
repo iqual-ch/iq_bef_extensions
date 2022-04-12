@@ -20,9 +20,9 @@ class Slider extends DefaultWidget {
    */
   public function defaultConfiguration() {
     return parent::defaultConfiguration() + [
-      'min' => 0,
-      'max' => 1000,
-      'step' => 1,
+      'min' => NULL,
+      'max' => NULL,
+      'step' => NULL,
       'histogram_num_of_bins' => 20,
       'auto_submit' => FALSE,
       'tooltip_factor' => 1,
@@ -79,21 +79,19 @@ class Slider extends DefaultWidget {
       '#type' => 'number',
       '#title' => $this->t('Range minimum'),
       '#default_value' => $this->configuration['min'],
-      '#description' => $this->t('The minimum allowed value for the jQuery range slider. It can be positive, negative, or zero and have up to 11 decimal places.'),
     ];
 
     $form['max'] = [
       '#type' => 'number',
       '#title' => $this->t('Range maximum'),
       '#default_value' => $this->configuration['max'],
-      '#description' => $this->t('The maximum allowed value for the jQuery range slider. It can be positive, negative, or zero and have up to 11 decimal places.'),
     ];
 
     $form['step'] = [
       '#type' => 'number',
       '#title' => $this->t('Step'),
       '#default_value' => $this->configuration['step'],
-      '#description' => $this->t('Determines the size or amount of each interval or step the slider takes between the min and max.') . '<br />' . $this->t('The full specified value range of the slider (Range maximum - Range minimum) must be evenly divisible by the step.') . '<br />' . $this->t('The step must be a positive number of up to 5 decimal places.'),
+      '#description' => $this->t('Determines the size or amount of each interval or step the slider takes between the min and max.'),
       '#min' => 0,
     ];
 
@@ -181,7 +179,7 @@ class Slider extends DefaultWidget {
     // Max must be > min.
     $min = $form_state->getValue('min');
     $max = $form_state->getValue('max');
-    if ($max <= $min) {
+    if ($min && $max && $max <= $min) {
       $form_state->setError($form['max'], $this->t('The slider max value must be greater than the slider min value.'));
     }
 
@@ -209,71 +207,108 @@ class Slider extends DefaultWidget {
     $fieldId = $this->getExposedFilterFieldId() . '_wrapper';
     $filter = $this->handler;
     $element = &$form[$fieldId];
-    $step = intval($this->configuration['step']);
-    $valueHistogram = array_fill(0, $step, 0);
     $element['#attached']['library'][] = 'iq_bef_extensions/sliders';
 
-    if ($filter->isExposed()
-    && empty($this->view->selective_filter)
-    && empty($form_state->getUserInput()[$fieldId])) {
+    if ($filter->isExposed() && empty($this->view->selective_filter) && empty($form_state->getUserInput()[$this->getExposedFilterFieldId()])) {
 
       [$table, $column] = $this->getTableAndColumn();
       $relationship = ($filter->options['relationship']) ? $filter->options['relationship'] : 'none';
       $entityIds = $this->getEntityIds($relationship);
-      $ids = $this->getReferencedValues($entityIds, $table, $column);
+      $values = $this->getReferencedValues($entityIds, $table, $column);
 
-      if (empty($ids) && !empty($this->configuration['remove_unused_filter'])) {
+      // Set a default value.
+      $min = 0;
+      $max = 1000;
+      $step = 1;
+      $valueHistogram = range($min, $max - $step, $step);
+
+      // If there's values, set min/max.
+      if (!empty($values)) {
+        $min = min($values);
+        $max = max($values);
+      }
+
+      // If make sure to have different values for min & max.
+      if ($min == $max) {
+        $min = min($min, 0);
+        $max = max($max, 0);
+      }
+
+      // If the min/max ar specified, set them according to the configuration.
+      if (strlen($this->configuration['min'])) {
+        $min = intval($this->configuration['min']);
+      }
+
+      if (strlen($this->configuration['max'])) {
+        $max = intval($this->configuration['max']);
+      }
+
+      // Hide element if specified and filter not set.
+      if (empty($values) && !empty($this->configuration['remove_unused_filter'])) {
         $element['#access'] = FALSE;
       }
       else {
         $histogramNumOfBins = (intval($this->configuration['histogram_num_of_bins'])) ?: NULL;
-        $min = intval($this->configuration['min']);
-        $max = intval($this->configuration['max']);
 
         if ($histogramNumOfBins) {
-          $step = ($max - $min) / $histogramNumOfBins;
+          $step = ($max - $min) / ($histogramNumOfBins);
         }
 
-        $valueHistogram = range($min, $max, $step);
-        array_pop($valueHistogram);
+        $valueHistogram = range($min, $max - $step, $step);
+
+        // For some reason, range() sometimes creates an array with one missing element.
+        if (count($valueHistogram) < $histogramNumOfBins) {
+          array_push($valueHistogram, max($valueHistogram) + $step);
+        }
 
         $numOfBins = count($valueHistogram);
-        $numOfValues = count($ids);
+        $numOfValues = count($values);
 
         $dist = array_count_values(array_map(function ($num) use ($min, $max, $numOfBins) {
           return intval(floor(($num - $min) / $max * $numOfBins));
-        }, $ids));
+        }, $values));
 
         array_walk($valueHistogram, function (&$value, $num) use ($dist, $numOfValues) {
           $value = array_key_exists($num, $dist) ? $dist[$num] / $numOfValues * 100 : 0;
         });
-      }
-    }
 
-    // Set the slider settings.
-    $element['#attached']['drupalSettings']['iq_bef_extensions']['filters'][$fieldId] = [
-      'type' => 'slider',
-      'min' => $this->configuration['min'],
-      'max' => $this->configuration['max'],
-      'step' => $this->configuration['step'],
-      'histogram_num_of_bins' => $this->configuration['histogram_num_of_bins'],
-      'auto_submit' => $this->configuration['auto_submit'],
-      'id' => Html::getUniqueId($fieldId),
-      'dataSelector' => Html::getId($fieldId),
-      'viewId' => $form['#id'],
-      'value_histogram' => $valueHistogram,
-      'apply_filter_text' => $this->configuration['apply_filter_text'],
-      'reset_filter_text' => $this->configuration['reset_filter_text'],
-      'tooltip_settings' => [
-        'factor' => $this->configuration['tooltip_factor'],
-        'thousand_separator' => $this->configuration['tooltip_thousand_separator'],
-        'decimal_separator' => $this->configuration['tooltip_decimal_separator'],
-        'scale' => $this->configuration['tooltip_scale'],
-        'prefix' => $this->configuration['tooltip_prefix'],
-        'suffix' => $this->configuration['tooltip_suffix'],
-      ],
-      'remove_unused_filter' => !empty($this->configuration['remove_unused_filter']),
-    ];
+        $maxValue = max($valueHistogram);
+        if ($maxValue) {
+          array_walk($valueHistogram, function (&$value, $num) use ($maxValue) {
+            $value = $value / $maxValue * 100;
+          });
+        }
+      }
+
+      if (strlen($this->configuration['step'])) {
+        $step = floatval($this->configuration['step']);
+      }
+
+      // Set the slider settings.
+      $element['#attached']['drupalSettings']['iq_bef_extensions']['filters'][$fieldId] = [
+        'type' => 'slider',
+        'min' => $min,
+        'max' => $max,
+        'step' => $step,
+        'histogram_num_of_bins' => $this->configuration['histogram_num_of_bins'],
+        'auto_submit' => $this->configuration['auto_submit'],
+        'id' => Html::getUniqueId($fieldId),
+        'dataSelector' => Html::getId($fieldId),
+        'viewId' => $form['#id'],
+        'value_histogram' => $valueHistogram,
+        'apply_filter_text' => $this->configuration['apply_filter_text'],
+        'reset_filter_text' => $this->configuration['reset_filter_text'],
+        'tooltip_settings' => [
+          'factor' => $this->configuration['tooltip_factor'],
+          'thousand_separator' => $this->configuration['tooltip_thousand_separator'],
+          'decimal_separator' => $this->configuration['tooltip_decimal_separator'],
+          'scale' => $this->configuration['tooltip_scale'],
+          'prefix' => $this->configuration['tooltip_prefix'],
+          'suffix' => $this->configuration['tooltip_suffix'],
+        ],
+        'remove_unused_filter' => !empty($this->configuration['remove_unused_filter']),
+      ];
+    }
   }
 
 }
