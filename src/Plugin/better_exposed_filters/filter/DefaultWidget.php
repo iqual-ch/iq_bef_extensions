@@ -5,6 +5,7 @@ namespace Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter;
 use Drupal\search_api\Item\Item;
 use Drupal\views\Views;
 use Drupal\better_exposed_filters\Plugin\better_exposed_filters\filter\FilterWidgetBase;
+use Drupal\Core\Entity\EntityInterface;
 
 /**
  *
@@ -36,7 +37,18 @@ class DefaultWidget extends FilterWidgetBase {
       // Execute the view using the total row query.
       $view = Views::getView($this->view->id());
       $view->setDisplay($this->view->current_display);
+
       $view->setArguments($this->view->args);
+      $args = [];
+      foreach (\Drupal::routeMatch()->getParameters() as $param) {
+        if ($param instanceof EntityInterface) {
+          $args[] = $param->id();
+        }
+      }
+      if (count($args)) {
+        $view->setArguments($args);
+      }
+
       $view->setItemsPerPage(0);
       $view->selective_filter = TRUE;
       $view->get_total_rows = TRUE;
@@ -156,4 +168,5 @@ class DefaultWidget extends FilterWidgetBase {
       }
     }
   }
+
 }
