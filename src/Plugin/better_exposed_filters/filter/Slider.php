@@ -209,7 +209,7 @@ class Slider extends DefaultWidget {
     $element = &$form[$fieldId];
     $element['#attached']['library'][] = 'iq_bef_extensions/sliders';
 
-    if ($filter->isExposed() && empty($this->view->selective_filter) && empty($form_state->getUserInput()[$this->getExposedFilterFieldId()])) {
+    if ($filter->isExposed() && empty($this->view->selective_filter) && empty($form_state->getUserInput()[$this->getExposedFilterFieldId()]['min']) && empty($form_state->getUserInput()[$this->getExposedFilterFieldId()]['max'])) {
 
       [$table, $column] = $this->getTableAndColumn();
       $relationship = ($filter->options['relationship']) ? $filter->options['relationship'] : 'none';
@@ -243,25 +243,26 @@ class Slider extends DefaultWidget {
         $max = intval($this->configuration['max']);
       }
 
+      $histogramNumOfBins = (intval($this->configuration['histogram_num_of_bins'])) ?: NULL;
+
       // Hide element if specified and filter not set.
       if (empty($values) && !empty($this->configuration['remove_unused_filter'])) {
         $element['#access'] = FALSE;
       }
       else {
-        $histogramNumOfBins = (intval($this->configuration['histogram_num_of_bins'])) ?: NULL;
 
         if ($histogramNumOfBins) {
-          $step = ($max - $min) / ($histogramNumOfBins);
+          $step = ($max - $min) / ($histogramNumOfBins - 1);
         }
 
-        $valueHistogram = range($min, $max - $step, $step);
+        $valueHistogram = range($min, $max, $step);
 
         // For some reason, range() sometimes creates an array with one missing element.
         if (count($valueHistogram) < $histogramNumOfBins) {
           array_push($valueHistogram, max($valueHistogram) + $step);
         }
 
-        $numOfBins = count($valueHistogram);
+        $numOfBins = max(array_keys($valueHistogram));
         $numOfValues = count($values);
 
         $dist = array_count_values(array_map(function ($num) use ($min, $max, $numOfBins) {
@@ -280,6 +281,7 @@ class Slider extends DefaultWidget {
         }
       }
 
+      $step = ($max - $min) / ($histogramNumOfBins);
       if (strlen($this->configuration['step'])) {
         $step = floatval($this->configuration['step']);
       }
