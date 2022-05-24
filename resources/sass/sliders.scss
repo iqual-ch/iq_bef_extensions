@@ -228,4 +228,37 @@
 
   }
 
+  &.min-tooltip-shift{
+    .dropdown{
+      .iq-bef-histogram-slider{
+        .slider{
+          .noUi-handle{
+            &.noUi-handle-lower{
+              .noUi-tooltip{
+                left: auto;
+                right: 0;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  &.max-tooltip-shift{
+    .dropdown{
+      .iq-bef-histogram-slider{
+        .slider{
+          .noUi-handle{
+            &.noUi-handle-upper{
+              .noUi-tooltip{
+                right: auto;
+                left: 0;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }
