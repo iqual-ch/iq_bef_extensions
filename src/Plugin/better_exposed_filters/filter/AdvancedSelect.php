@@ -96,7 +96,7 @@ class AdvancedSelect extends DefaultWidget {
       }
     }
 
-    $element['#attached']['drupalSettings']['iq_bef_extensions']['filters'][$fieldId] = [
+    $element['#attached']['drupalSettings']['iq_bef_extensions'][$this->view->id() . '__' . $this->view->current_display]['filters'][$fieldId] = [
       'id' => Html::getUniqueId($fieldId),
       'filter_id' => $fieldId,
       'type' => 'advanced_select',

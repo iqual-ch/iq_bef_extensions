@@ -287,7 +287,7 @@ class Slider extends DefaultWidget {
       }
 
       // Set the slider settings.
-      $element['#attached']['drupalSettings']['iq_bef_extensions']['filters'][$fieldId] = [
+      $element['#attached']['drupalSettings']['iq_bef_extensions'][$this->view->id() . '__' . $this->view->current_display]['filters'][$fieldId] = [
         'type' => 'slider',
         'min' => $min,
         'max' => $max,

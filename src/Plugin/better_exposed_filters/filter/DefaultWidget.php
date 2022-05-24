@@ -48,7 +48,7 @@ class DefaultWidget extends FilterWidgetBase {
       if (count($args)) {
         $view->setArguments($args);
       }
-
+      $view->setExposedInput([]);
       $view->setItemsPerPage(0);
       $view->selective_filter = TRUE;
       $view->get_total_rows = TRUE;
