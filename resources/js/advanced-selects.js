@@ -72,7 +72,10 @@
 
               $input.on('select2:select select2:unselect', function (e) {
                 let $ul = $input.parent().find('ul').removeClass('has-counter');
-                $ul.prepend('<li class="select2-selection__label">' + $ul.closest('.js-form-item').find('label').text() + '</li>');
+                if (!$ul.find('.select2-selection__label').length) {
+                  $ul.prepend('<li class="select2-selection__label">' + $ul.closest('.js-form-item').find('label').text() + '</li>');
+                }
+
                 let maxWidth = $ul.parent().width();
                 let width = 0;
                 let count = 0;
