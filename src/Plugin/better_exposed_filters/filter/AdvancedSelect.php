@@ -4,7 +4,6 @@ namespace Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter;
 
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\better_exposed_filters\Plugin\better_exposed_filters\filter\DefaultWidget;
 
 /**
  * Select implementation using the chosen JS library.
@@ -32,7 +31,7 @@ class AdvancedSelect extends DefaultWidget {
    * {@inheritdoc}
    */
   public static function isApplicable($filter = NULL, array $filter_options = []) {
-    return ($filter_options && ($filter_options['type'] == 'select' || $filter_options['widget'] == 'select'));
+    return ($filter_options && ($filter_options['type'] == 'select' || $filter_options['widget'] == 'select' || (array_key_exists('group_info', $filter_options) && array_key_exists('widget', $filter_options['group_info']) && $filter_options['group_info']['widget'] == 'select')));
   }
 
   /**
@@ -78,7 +77,26 @@ class AdvancedSelect extends DefaultWidget {
     parent::exposedFormAlter($form, $form_state);
     $form[$fieldId]['#attached']['library'][] = 'iq_bef_extensions/advanced_selects';
 
-    $form[$fieldId]['#attached']['drupalSettings']['iq_bef_extensions']['filters'][$fieldId] = [
+    $filter = $this->handler;
+    $element = &$form[$fieldId];
+
+    if ($filter->isExposed()
+      && empty($this->view->selective_filter)
+      && !empty($this->configuration['remove_unused_items'])) {
+
+      $relationship = ($filter->options['relationship']) ? $filter->options['relationship'] : 'none';
+      $entityIds = $this->getEntityIds($relationship);
+      [$table, $column] = $this->getTableAndColumn();
+      $ids = $this->getReferencedValues($entityIds, $table, $column);
+      if (empty($ids) && !empty($this->configuration['remove_unused_filter'])) {
+        $element['#access'] = FALSE;
+      }
+      else {
+        $this->filterElementWithOptions($element, $ids);
+      }
+    }
+
+    $element['#attached']['drupalSettings']['iq_bef_extensions'][$this->view->id() . '__' . $this->view->current_display]['filters'][$fieldId] = [
       'id' => Html::getUniqueId($fieldId),
       'filter_id' => $fieldId,
       'type' => 'advanced_select',

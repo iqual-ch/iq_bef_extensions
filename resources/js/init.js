@@ -6,13 +6,17 @@
       Drupal.storeFilterValues = function(formId, inputName, value) {
         if (formId && inputName) {
           let formStorage = {};
+          let path = drupalSettings.path.currentPath;
           if (sessionStorage.getItem("formStorage")) {
             formStorage = JSON.parse(sessionStorage.getItem("formStorage"));
           }
-          if (!formStorage.hasOwnProperty(formId)) {
-            formStorage[formId] = {};
+          if (!formStorage.hasOwnProperty(path)) {
+            formStorage[path] = {};
           }
-          formStorage[formId][inputName] = value;
+          if (!formStorage[path].hasOwnProperty(formId)) {
+            formStorage[path][formId] = {};
+          }
+          formStorage[path][formId][inputName] = value;
           sessionStorage.setItem("formStorage", JSON.stringify(formStorage));
         }
       }
@@ -20,10 +24,11 @@
       Drupal.retrieveFilterValue = function(formId, inputName) {
         if (formId && inputName) {
           let formStorage = {};
+          let path = drupalSettings.path.currentPath;
           if (sessionStorage.getItem("formStorage")) {
             formStorage = JSON.parse(sessionStorage.getItem("formStorage"));
-            if (formStorage.hasOwnProperty(formId)) {
-              return formStorage[formId][inputName];
+            if (formStorage.hasOwnProperty(path) && formStorage[path].hasOwnProperty(formId)) {
+              return formStorage[path][formId][inputName];
             }
           }
         }
@@ -32,29 +37,38 @@
       Drupal.retrieveForm = function() {
         if (sessionStorage.getItem("formStorage")) {
           let formStorage = JSON.parse(sessionStorage.getItem("formStorage"));
-
-          Object.keys(formStorage).forEach(function(formId){
-            Object.keys(formStorage[formId]).forEach(function(inputName){
-              $('#' + formId ).find('[name="' + inputName + '"]').val(formStorage[formId][inputName]);
+          let path = drupalSettings.path.currentPath;
+          if (formStorage.hasOwnProperty(path)) {
+            Object.keys(formStorage[path]).forEach(function(formId){
+              Object.keys(formStorage[path][formId]).forEach(function(inputName){
+                $('#' + formId ).find('[name="' + inputName + '"]').val(formStorage[path][formId][inputName]);
+              });
             });
-          });
+          }
         }
       }
 
       Drupal.resetFilterValue = function(formId, inputName) {
         let formStorage = {};
+        let path = drupalSettings.path.currentPath;
         if (sessionStorage.getItem("formStorage")) {
           formStorage = JSON.parse(sessionStorage.getItem("formStorage"));
         }
-        if (formStorage.hasOwnProperty(formId)) {
-          delete formStorage[formId][inputName];
+        if (formStorage.hasOwnProperty(path) && formStorage[path].hasOwnProperty(formId)) {
+          delete formStorage[path][formId][inputName];
           sessionStorage.setItem("formStorage", JSON.stringify(formStorage));
         }
       }
 
       Drupal.resetForm = function(formId) {
         let formStorage = {};
-        formStorage[formId] = {};
+        let path = drupalSettings.path.currentPath;
+
+        if (sessionStorage.getItem("formStorage")) {
+          formStorage = JSON.parse(sessionStorage.getItem("formStorage"));
+          delete formStorage[path];
+        }
+
         sessionStorage.setItem("formStorage", JSON.stringify(formStorage));
       }
 
@@ -70,11 +84,11 @@
 
   $(document).on("iq-bef-extionsions-after-init", function(){
     $('.bef-exposed-form').find('input[placeholder], select').change(function(e){
-      Drupal.storeFilterValues($(this).closest('form').attr('id'), $(this).attr('name'), $(this).val())
+      Drupal.storeFilterValues($(this).closest('.views-element-container').attr('id'), $(this).attr('name'), $(this).val())
     });
 
     $('.bef-exposed-form').find('[data-drupal-selector="edit-reset"]').click(function(){
-      Drupal.resetForm($(this).closest('form').attr('id'));
+      Drupal.resetForm($(this).closest('.views-element-container').attr('id'));
     });
   });
 
@@ -82,9 +96,10 @@
 
     // Apply stored filters on page load
     let formdata =  JSON.parse(sessionStorage.getItem("formStorage"));
-    if (formdata) {
-      Object.keys(formdata).forEach(function(key){
-        let refresh = Object.keys(formdata[key]).length;
+    let path = drupalSettings.path.currentPath;
+    if (formdata && formdata.hasOwnProperty(path)) {
+      Object.keys(formdata[path]).forEach(function(key){
+        let refresh = Object.keys(formdata[path][key]).length;
         if (refresh) {
           $('#' + key).find($('[data-drupal-selector*="edit-submit"]')).click();
         }
@@ -92,7 +107,7 @@
     }
 
     $(document).on('change', '[name="sort_bef_combine"]', function(){
-      $(this).closest('form').find($('[data-drupal-selector*="edit-submit"]')).click();
+      $(this).closest('.views-element-container').find($('[data-drupal-selector*="edit-submit"]')).click();
     })
 
   });
