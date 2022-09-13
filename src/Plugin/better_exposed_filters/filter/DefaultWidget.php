@@ -152,6 +152,13 @@ class DefaultWidget extends FilterWidgetBase {
    *   The allowed keys.
    */
   protected function filterElementWithOptions(array &$element, array $keys) {
+
+    // Append selected options to allowed keys.
+    $exposedFilters = $this->view->getExposedInput();
+    if (array_key_exists($this->handler->field, $exposedFilters)) {
+      $keys = array_unique(array_merge($keys, $exposedFilters[$this->handler->field]));
+    }
+
     if ($keys !== NULL && !empty($element['#options'])) {
       foreach ($element['#options'] as $key => $option) {
         if ($key === 'All') {
