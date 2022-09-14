@@ -54,8 +54,10 @@ class DefaultWidget extends FilterWidgetBase {
       $view->get_total_rows = TRUE;
       $view->preExecute();
       $view->execute();
-
-      $entityIdKey = $view->getBaseEntityType()->getKeys()['id'];
+      
+      if (strpos($view->storage->get('base_table'), 'search_api') === FALSE) {
+        $entityIdKey = $view->getBaseEntityType()->getKeys()['id'];  
+      }
 
       // Create arrays for entity ids.
       self::$entityIds[$viewKey] = [];
@@ -101,9 +103,15 @@ class DefaultWidget extends FilterWidgetBase {
   protected function getTableAndColumn(): array {
     $table = $column = '';
     if (empty($this->handler->definition['table']) || empty($this->handler->definition['field'])) {
-      $view = Views::getView($this->view->id());
-      $column = $this->getExposedFilterFieldId() . '_value';
-      $table = $view->getBaseEntityType()->id() . '__' . $this->getExposedFilterFieldId();
+      if ($this->view->getBaseEntityType()) {
+        $entityType = $this->view->getBaseEntityType()->id();
+      } else {
+        $dataSources = array_keys($this->view->query->getIndex()->getDatasources());
+        $entityType = array_map(function ($key) { return explode(':', $key)[1]; }, $dataSources)[0];
+      }
+      $storage = \Drupal::entityTypeManager()->getStorage('field_storage_config')->load($entityType . '.' . $this->getExposedFilterFieldId());
+      $table = $entityType . '__' . $storage->getName();
+      $column = $storage->getName() .'_'. $storage->getMainPropertyName();
     }
     else {
       $column = $this->handler->definition['field'];

@@ -63,7 +63,7 @@ class AdvancedSelect extends DefaultWidget {
       '#type' => 'checkbox',
       '#title' => $this->t("Remove filter if not used"),
       '#description' => $this->t("Remove the filter if it doesn't affect the results."),
-      '#default_value' => $this->configuration['remove_unused_items'],
+      '#default_value' => $this->configuration['remove_unused_filter'],
     ];
 
     return $form;
