@@ -2,10 +2,12 @@
 
 namespace Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter;
 
-use Drupal\search_api\Item\Item;
 use Drupal\views\Views;
 use Drupal\better_exposed_filters\Plugin\better_exposed_filters\filter\FilterWidgetBase;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\search_api\Plugin\views\query\SearchApiQuery;
+use Drupal\search_api\Item\Item;
+use UnexpectedValueException;
 
 /**
  *
@@ -54,9 +56,9 @@ class DefaultWidget extends FilterWidgetBase {
       $view->get_total_rows = TRUE;
       $view->preExecute();
       $view->execute();
-      
-      if (strpos($view->storage->get('base_table'), 'search_api') === FALSE) {
-        $entityIdKey = $view->getBaseEntityType()->getKeys()['id'];  
+
+      if (!$this->view->getQuery() instanceof SearchApiQuery) {
+        $entityIdKey = $view->getBaseEntityType()->getKey('id');
       }
 
       // Create arrays for entity ids.
@@ -99,25 +101,43 @@ class DefaultWidget extends FilterWidgetBase {
    *
    * @return array
    *   The table and column.
+   * 
+   * @throws UnexpectedValueException
    */
   protected function getTableAndColumn(): array {
     $table = $column = '';
+    $referenceColumn = 'entity_id';
     if (empty($this->handler->definition['table']) || empty($this->handler->definition['field'])) {
       if ($this->view->getBaseEntityType()) {
         $entityType = $this->view->getBaseEntityType()->id();
-      } else {
+      } elseif ($this->view->getQuery() instanceof SearchApiQuery) {
         $dataSources = array_keys($this->view->query->getIndex()->getDatasources());
-        $entityType = array_map(function ($key) { return explode(':', $key)[1]; }, $dataSources)[0];
+        $entityType = array_map(function ($key) {
+          return explode(':', $key)[1];
+        }, $dataSources)[0];
+      } else {
+        throw new UnexpectedValueException(sprintf('Could not determine base type of view %s.', $this->view->id()));
       }
       $storage = \Drupal::entityTypeManager()->getStorage('field_storage_config')->load($entityType . '.' . $this->getExposedFilterFieldId());
-      $table = $entityType . '__' . $storage->getName();
-      $column = $storage->getName() .'_'. $storage->getMainPropertyName();
-    }
-    else {
+      if (empty($storage)) {
+        $typeDefinition = \Drupal::entityTypeManager()->getDefinition($entityType, FALSE);
+        if (!empty($typeDefinition)) {
+          $table = $typeDefinition->getDataTable();
+          $column = $this->getExposedFilterFieldId();
+          $referenceColumn = $typeDefinition->getKey('id');
+        }
+      } else {
+        $table = $entityType . '__' . $storage->getName();
+        $column = $storage->getName() . '_' . $storage->getMainPropertyName();
+      }
+    } else {
       $column = $this->handler->definition['field'];
       $table = $this->handler->definition['table'];
     }
-    return [$table, $column];
+    if (empty($table) || empty($column)) {
+      throw new UnexpectedValueException(sprintf('Could not determine table or column for %s', $this->view->id()));
+    }
+    return [$table, $column, $referenceColumn];
   }
 
   /**
@@ -133,11 +153,11 @@ class DefaultWidget extends FilterWidgetBase {
    * @return array|null
    *   The referenced values or null on error.
    */
-  protected function getReferencedValues(array $entityIds, string $table, string $column): array {
+  protected function getReferencedValues(array $entityIds, string $table, string $column, string $referenceColumn = 'entity_id'): array {
     $ids = [];
     if (!empty($entityIds)) {
       try {
-        $result = \Drupal::database()->select($table, 't')->condition('t.entity_id', $entityIds, 'IN')->fields('t', [$column])->execute();
+        $result = \Drupal::database()->select($table, 't')->condition('t.' . $referenceColumn, $entityIds, 'IN')->fields('t', [$column])->execute();
         foreach ($result as $record) {
           if ($record->{$column}) {
             $ids[] = $record->{$column};
