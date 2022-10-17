@@ -41,15 +41,6 @@ class DefaultWidget extends FilterWidgetBase {
       $view->setDisplay($this->view->current_display);
 
       $view->setArguments($this->view->args);
-      $args = [];
-      foreach (\Drupal::routeMatch()->getParameters() as $param) {
-        if ($param instanceof EntityInterface) {
-          $args[] = $param->id();
-        }
-      }
-      if (count($args)) {
-        $view->setArguments($args);
-      }
       $view->setExposedInput([]);
       $view->setItemsPerPage(0);
       $view->selective_filter = TRUE;
