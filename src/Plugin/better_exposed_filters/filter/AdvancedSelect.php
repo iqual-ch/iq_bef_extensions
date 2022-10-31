@@ -63,7 +63,7 @@ class AdvancedSelect extends DefaultWidget {
       '#type' => 'checkbox',
       '#title' => $this->t("Remove filter if not used"),
       '#description' => $this->t("Remove the filter if it doesn't affect the results."),
-      '#default_value' => $this->configuration['remove_unused_items'],
+      '#default_value' => $this->configuration['remove_unused_filter'],
     ];
 
     return $form;
@@ -86,8 +86,8 @@ class AdvancedSelect extends DefaultWidget {
 
       $relationship = ($filter->options['relationship']) ? $filter->options['relationship'] : 'none';
       $entityIds = $this->getEntityIds($relationship);
-      [$table, $column] = $this->getTableAndColumn();
-      $ids = $this->getReferencedValues($entityIds, $table, $column);
+      [$table, $column, $referenceColumn] = $this->getTableAndColumn();  
+      $ids = $this->getReferencedValues($entityIds, $table, $column, $referenceColumn);
       if (empty($ids) && !empty($this->configuration['remove_unused_filter'])) {
         $element['#access'] = FALSE;
       }

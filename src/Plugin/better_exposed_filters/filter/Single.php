@@ -91,17 +91,17 @@ class Single extends DefaultWidget {
       && empty($this->view->selective_filter)
       && !empty($this->configuration['remove_unused_items'])
       && !$checked) {
-        [$table, $column] = $this->getTableAndColumn();
+        [$table, $column, $referenceColumn] = $this->getTableAndColumn();
         $relationship = ($filter->options['relationship']) ? $filter->options['relationship'] : 'base';
         $entityIds = $this->getEntityIds($relationship);
-        $count = \Drupal::database()
+        $count = (!empty($entityIds)) ? \Drupal::database()
           ->select($table, 't')
-          ->condition('t.entity_id', $entityIds, 'IN')
+          ->condition('t.' . $referenceColumn, $entityIds, 'IN')
           ->condition('t.' . $column, 0, '<>')
           ->fields('t', [$column])
           ->countQuery()
           ->execute()
-          ->fetchField();
+          ->fetchField() : 0;
         if ($count < 1) {
           $form[$field_id]['#access'] = FALSE;
         }
