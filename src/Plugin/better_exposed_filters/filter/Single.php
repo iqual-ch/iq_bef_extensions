@@ -63,12 +63,12 @@ class Single extends DefaultWidget {
     $filter = $this->handler;
     // Form element is designated by the element ID which is user-
     // configurable, and stored differently for grouped filters.
-    $exposed_id = $filter->options['expose']['identifier'];
-    $field_id = $this->getExposedFilterFieldId();
+    $exposedId = $filter->options['expose']['identifier'];
+    $fieldId = $this->getExposedFilterFieldId();
 
     parent::exposedFormAlter($form, $form_state);
 
-    if (!empty($form[$field_id])) {
+    if (!empty($form[$fieldId])) {
       // Views populates missing values in $form_state['input'] with the
       // defaults and a checkbox does not appear in $_GET (or $_POST) so it
       // will appear to be missing when a user submits a form. Because of
@@ -78,14 +78,14 @@ class Single extends DefaultWidget {
       $input = $form_state->getUserInput();
       // The input value ID is not always consistent.
       // Prioritize the field ID, but default to exposed ID.
-      // @todo Remove $exposed_id once
+      // @todo Remove $exposedId once
       //   https://www.drupal.org/project/drupal/issues/288429 is fixed.
-      $input_value = $input[$field_id] ?? ($input[$exposed_id] ?? NULL);
+      $inputValue = $input[$fieldId] ?? ($input[$exposedId] ?? NULL);
       $checked = FALSE;
       // We need to be super careful when working with raw input values. Let's
       // make sure the value exists in our list of possible options.
-      if (in_array($input_value, array_keys($form[$field_id]['#options'])) && $input_value !== 'All') {
-        $checked = (bool) $input_value;
+      if (in_array($inputValue, array_keys($form[$fieldId]['#options'])) && $inputValue !== 'All') {
+        $checked = (bool) $inputValue;
       }
       if ($filter->isExposed()
       && empty($this->view->selective_filter)
@@ -102,15 +102,15 @@ class Single extends DefaultWidget {
           ->countQuery()
           ->execute()
           ->fetchField() : 0;
-        if ($count < 1) {
-          $form[$field_id]['#access'] = FALSE;
+        if ($count < 1 && !$inputValue) {
+          $form[$fieldId]['#access'] = FALSE;
         }
       }
-      if (!isset($form[$field_id]['#access']) || !$form[$field_id]['#access']) {
-        $form[$field_id]['#type'] = 'checkbox';
-        $form[$field_id]['#default_value'] = 0;
-        $form[$field_id]['#return_value'] = 1;
-        $form[$field_id]['#value'] = $checked ? 1 : 0;
+      if (!isset($form[$fieldId]['#access']) || !$form[$fieldId]['#access']) {
+        $form[$fieldId]['#type'] = 'checkbox';
+        $form[$fieldId]['#default_value'] = 0;
+        $form[$fieldId]['#return_value'] = 1;
+        $form[$fieldId]['#value'] = $checked ? 1 : 0;
       }
     }
   }
