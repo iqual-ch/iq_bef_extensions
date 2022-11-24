@@ -1,9 +1,10 @@
+
 # iq_bef_extensions
 
 Extensions for the BEF (better exposed filters) module.
 
 ## Background
-Eventhough the BEF module providies significant enhancements for exposed filter, there's still some missing funcitonlities, such as range sliders etc.
+Eventhough the BEF module providies significant enhancements for exposed filter, there's still some missing functionlities, such as range sliders etc.
 
 ## This module includes
 Filter plugins:
@@ -42,3 +43,48 @@ If you want to work with layouts, make sure VEFL is compatible with BEF 5 by app
 
 ### Advanced select options
 - **Remove unused items**: Hides all options that not return empty filter results.
+
+## Advanced usage / extend behavior
+
+### Interaction with JS
+
+The iq_bef_extensions frontend is built using jQuery and is based on its event system. Three events are triggered that can be used as entry points to change/extend the base functionality:
+
+- iq-bef-extionsions-before-init
+- iq-bef-extionsions-init
+- iq-bef-extionsions-after-init
+
+Interaction can be done by setting jQuery event listeners:
+
+    $(document).on("iq-bef-extionsions-before-init", function(){
+      // Do stuff here...
+    });
+
+### Create new filter plugins
+
+iq_bef_extensions filters are implemented as `BetterExposedFiltersFilterWidgets`. Use Symfony's Annotation System to create a new filter plugin with its own functionality. To access the basic functionality of iq_bef_extensions, make sure your custom plugins inherit from the `Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter\DefaultWidget` class.
+
+
+Example code:
+
+    <?php
+
+    namespace Drupal\custom_module\Plugin\better_exposed_filters\filter;
+
+    use Drupal\Component\Utility\Html;
+    use Drupal\Core\Form\FormStateInterface;
+    use Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter\DefaultWidget;
+
+    /**
+     * Select implementation using the chosen JS library.
+     *
+     * @BetterExposedFiltersFilterWidget(
+     *   id = "custom_filter_id",
+     *   label = @Translation("Custom Filter name"),
+     * )
+     */
+    class CustomFilterPlugin extends DefaultWidget {
+
+      ... Youre custom methods.
+
+    }
