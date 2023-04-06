@@ -212,7 +212,7 @@ class Slider extends DefaultWidget {
     if ($filter->isExposed() && empty($this->view->selective_filter) && empty($form_state->getUserInput()[$this->getExposedFilterFieldId()]['min']) && empty($form_state->getUserInput()[$this->getExposedFilterFieldId()]['max'])) {
 
       [$table, $column, $referenceColumn] = $this->getTableAndColumn();
-      $relationship = ($filter->options['relationship']) ? $filter->options['relationship'] : 'none';
+      $relationship = $filter->options['relationship'] ?: 'none';
       $entityIds = $this->getEntityIds($relationship);
       $values = $this->getReferencedValues($entityIds, $table, $column, $referenceColumn);
 

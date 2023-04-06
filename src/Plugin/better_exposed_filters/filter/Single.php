@@ -3,7 +3,6 @@
 namespace Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter;
 
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter\DefaultWidget;
 
 /**
  * Single on/off widget implementation.
@@ -92,7 +91,7 @@ class Single extends DefaultWidget {
       && !empty($this->configuration['remove_unused_items'])
       && !$checked) {
         [$table, $column, $referenceColumn] = $this->getTableAndColumn();
-        $relationship = ($filter->options['relationship']) ? $filter->options['relationship'] : 'base';
+        $relationship = $filter->options['relationship'] ?: 'base';
         $entityIds = $this->getEntityIds($relationship);
         $count = (!empty($entityIds)) ? \Drupal::database()
           ->select($table, 't')
@@ -127,7 +126,7 @@ class Single extends DefaultWidget {
       return $is_applicable;
     }
 
-    if (is_a($filter, 'Drupal\views\Plugin\views\filter\BooleanOperator') || ($filter->isAGroup() && count($filter->options['group_info']['group_items']) == 1)) {
+    if (is_a($filter, 'Drupal\views\Plugin\views\filter\BooleanOperator') || ($filter->isAGroup() && (is_countable($filter->options['group_info']['group_items']) ? count($filter->options['group_info']['group_items']) : 0) == 1)) {
       $is_applicable = TRUE;
     }
 
