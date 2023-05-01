@@ -22,7 +22,7 @@ class Single extends DefaultWidget {
     return parent::defaultConfiguration() + [
       'no_results_text' => NULL,
       'auto_submit' => FALSE,
-      'remove_unused_items' => FALSE,
+      'remove_unused_filter' => FALSE,
     ];
   }
 
@@ -45,11 +45,11 @@ class Single extends DefaultWidget {
       '#min' => 0,
     ];
 
-    $form['remove_unused_items'] = [
+    $form['remove_unused_filter'] = [
       '#type' => 'checkbox',
-      '#title' => $this->t('Remove unused items'),
-      '#default_value' => $this->configuration['remove_unused_items'],
-      '#min' => 0,
+      '#title' => $this->t("Remove filter if not used"),
+      '#description' => $this->t("Remove the filter if it doesn't affect the results."),
+      '#default_value' => $this->configuration['remove_unused_filter'],
     ];
 
     return $form;
@@ -89,7 +89,7 @@ class Single extends DefaultWidget {
       }
       if ($filter->isExposed()
       && empty($this->view->selective_filter)
-      && !empty($this->configuration['remove_unused_items'])
+      && !empty($this->configuration['remove_unused_filter'])
       && !$checked) {
         [$table, $column, $referenceColumn] = $this->getTableAndColumn();
         $relationship = ($filter->options['relationship']) ? $filter->options['relationship'] : 'base';
@@ -102,7 +102,7 @@ class Single extends DefaultWidget {
           ->countQuery()
           ->execute()
           ->fetchField() : 0;
-        if ($count < 1 && !$input_value) {
+        if ($count < 1) {
           $form[$field_id]['#access'] = FALSE;
         }
       }
