@@ -64,7 +64,7 @@ class Single extends DefaultWidget {
     // Form element is designated by the element ID which is user-
     // configurable, and stored differently for grouped filters.
     $exposed_id = $filter->options['expose']['identifier'];
-    $field_id = $this->getExposedFilterfield_id();
+    $field_id = $this->getExposedFilterFieldId();
 
     parent::exposedFormAlter($form, $form_state);
 
