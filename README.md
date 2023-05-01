@@ -1,10 +1,9 @@
-
 # iq_bef_extensions
 
 Extensions for the BEF (better exposed filters) module.
 
 ## Background
-Eventhough the BEF module providies significant enhancements for exposed filter, there's still some missing functionlities, such as range sliders etc.
+Eventhough the BEF module providies significant enhancements for exposed filter, there's still some missing functionalities, such as range sliders etc.
 
 ## This module includes
 Filter plugins:
