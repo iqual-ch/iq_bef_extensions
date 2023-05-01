@@ -87,9 +87,7 @@ class AdvancedSelect extends DefaultWidget {
     ) {
 
       $relationship = ($filter->options['relationship']) ? $filter->options['relationship'] : 'none';
-      $entityIds = $this->getEntityIds($relationship);
-      [$table, $column, $referenceColumn] = $this->getTableAndColumn();
-      $ids = $this->getReferencedValues($entityIds, $table, $column, $referenceColumn);
+      $ids = $this->getFilterIds($relationship);
       if (
         empty($ids)
         && !empty($this->configuration['remove_unused_filter'])
