@@ -102,7 +102,7 @@ class Single extends DefaultWidget {
           ->countQuery()
           ->execute()
           ->fetchField() : 0;
-        if ($count < 1) {
+        if ($count < 1 && !$input_value) {
           $form[$field_id]['#access'] = FALSE;
         }
       }
