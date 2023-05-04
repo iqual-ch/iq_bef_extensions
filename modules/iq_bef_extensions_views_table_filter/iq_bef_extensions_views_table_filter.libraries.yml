@@ -1,0 +1,3 @@
+views_table_filter:
+  js:
+    resources/js/views_table_filter.js: {}

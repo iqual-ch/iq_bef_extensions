@@ -1,0 +1,175 @@
+<?php
+
+/**
+ * @file
+ * Allows users to move exposed filters to the view's table header.
+ */
+
+use Drupal\Component\Utility\Html;
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function iq_bef_extensions_views_table_filter_form_views_ui_edit_display_form_alter(&$form, &$form_state, $form_id) {
+  $view = $form_state->get('view');
+  if (empty($view)) {
+    return;
+  }
+
+  $view = $view->getExecutable();
+  $exposed_form = $view->display_handler->getPlugin('exposed_form');
+
+  if (!isset($exposed_form->options['bef'])) {
+    return;
+  }
+
+  $style = $view->display_handler->getPlugin('style');
+  if (!isset($style->options['columns'])) {
+    // Not a table style.
+    return;
+  }
+
+  $bef_form = &$form['options']['exposed_form_options']['bef'];
+
+  if (empty($bef_form)) {
+    return;
+  }
+
+  $filters = [];
+  foreach ($view->display_handler->getHandlers('filter') as $name => $filter) {
+    if (!empty($filter->options['exposed'])) {
+      $filters[$name] = $filter;
+    }
+  }
+  if (empty($filters)) {
+    return;
+  }
+
+  $labels = $view->display_handler->getFieldLabels();
+  $columns = ['_none' => t('No')];
+  foreach ($style->options['columns'] as $field => $column) {
+    if ($field === $column) {
+      $columns[$field] = !empty($labels[$field]) ? $labels[$field] : $field;
+    }
+  }
+  if (count($columns) < 2) {
+    return;
+  }
+
+  foreach ($filters as $name => $filter) {
+    if (!isset($bef_form['filter'][$name]['configuration']['advanced'])) {
+      continue;
+    }
+
+    $default = isset($exposed_form->options['bef']['filter'][$name]['advanced']['table_filter']) ?
+      $exposed_form->options['bef']['filter'][$name]['advanced']['table_filter'] : '_none';
+
+    $bef_form['filter'][$name]['configuration']['advanced']['table_filter'] = [
+      '#type' => 'select',
+      '#title' => t('Move filter to the table column'),
+      '#options' => $columns,
+      '#default_value' => $default,
+    ];
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function iq_bef_extensions_views_table_filter_form_views_exposed_form_alter(&$form, &$form_state, $form_id) {
+  $view = $form_state->get('view');
+  if (empty($view)) {
+    return;
+  }
+
+  $exposed_form = $view->display_handler->getPlugin('exposed_form');
+
+  if (empty($exposed_form->options['bef'])) {
+    return;
+  }
+
+  $has_table_filters = FALSE;
+  foreach ($exposed_form->options['bef']['filter'] as $settings) {
+    if (empty($settings['advanced']['table_filter'])) {
+      continue;
+    }
+    $column = $settings['advanced']['table_filter'];
+    if ($column !== '_none') {
+      $has_table_filters = TRUE;
+    }
+  }
+
+  if (!$has_table_filters) {
+    return;
+  }
+
+  $style = $view->display_handler->getPlugin('style');
+  if (!isset($style->options['columns'])) {
+    // Not a table style.
+    return;
+  }
+
+  $style->options['empty_table'] = TRUE;
+
+  $form['views_table_filter'] = [
+    '#type' => 'hidden',
+    '#value' => $view->id() . ':' . $view->current_display,
+    '#attributes' => ['class' => ['views-table-filter']],
+  ];
+}
+
+/**
+ * Implements hook_preprocess_views_view_table().
+ */
+function iq_bef_extensions_views_table_filter_preprocess_views_view_table(&$vars) {
+  $view = $vars['view'];
+  if (!$view->display_handler->usesExposed()) {
+    return;
+  }
+  $exposed_form = $view->display_handler->getPlugin('exposed_form');
+
+  if (empty($exposed_form->options['bef']['filter'])) {
+    return;
+  }
+
+  $filter_columns = [];
+  foreach ($exposed_form->options['bef']['filter'] as $filter => $settings) {
+    if (empty($settings['advanced']['table_filter'])) {
+      continue;
+    }
+    $column = $settings['advanced']['table_filter'];
+    if ($column !== '_none') {
+      $filter_columns[$filter] = $column;
+    }
+  }
+
+  $settings = [];
+
+  foreach ($filter_columns as $filter => $column) {
+    if ((!isset($vars['header'][$column])) || (!isset($view->filter[$filter]->options['expose']['identifier']))) {
+      continue;
+    }
+    $identifier = $view->filter[$filter]->options['expose']['identifier'];
+    $filter = Html::cleanCssIdentifier($filter);
+
+    $content = '';
+    if (is_string($vars['header'][$column]['content'])) {
+      $content = $vars['header'][$column]['content'];
+    }
+    else {
+      $content = \Drupal::service('renderer')->render($vars['header'][$column]['content']);
+    }
+
+    $vars['header'][$column]['content'] = [
+      '#markup' => $content . '<div class="table-header-filter table-header-filter-' . $filter . '"></div>',
+    ];
+    $settings[$filter] = $identifier;
+  }
+
+  if (empty($settings)) {
+    return;
+  }
+
+  $vars['#attached']['library'][] = 'iq_bef_extensions_views_table_filter/views_table_filter';
+  $vars['#attached']['drupalSettings']['views_table_filter'][$view->id() . ':' . $view->current_display] = $settings;
+}

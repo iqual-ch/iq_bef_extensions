@@ -1,0 +1,11 @@
+name: 'iqual Views Table Filter'
+description: 'Moves views exposed filters in table header.'
+package: Custom
+
+type: module
+core_version_requirement: ^8 || ^9
+
+dependencies:
+  - drupal:views
+  - drupal:better_exposed_filters
+  - iq_bef_extensions:iq_bef_extensions
