@@ -37,3 +37,11 @@ layout_standard:
   dependencies:
     - core/drupal
     - core/jquery
+
+localstorage:
+  version: 4.x
+  js:
+    resources/js/localstorage.js: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
