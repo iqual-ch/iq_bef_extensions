@@ -10,6 +10,16 @@
   ],
   "require": {
     "drupal/better_exposed_filters": "^5.0",
-    "drupal/vefl": "^3.0"
+    "drupal/vefl": "^3.0",
+    "drupal/views_ajax_history": "^1.0"
+  },
+  "extra": {
+    "patches": {
+      "drupal/views_ajax_history": {
+        "#3216707: When we have selected filters and go back, all selected values was unchecked": "https://www.drupal.org/files/issues/2021-06-01/views_ajax_history-search_checkbox_in_form_values.patch",
+        "#3107126: Use Fullscreen Progress Indicator": "https://www.drupal.org/files/issues/2020-01-17/views_ajax_history-3107126-2.patch",
+        "#3090512: Views ajax history broken after page reload": "https://www.drupal.org/files/issues/2023-01-12/views_ajax_history-history_broken_page_reload-3090512-17.patch"
+      }
+    }
   }
 }
