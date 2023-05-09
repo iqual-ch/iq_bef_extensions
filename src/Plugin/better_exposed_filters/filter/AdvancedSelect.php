@@ -19,19 +19,20 @@ class AdvancedSelect extends DefaultWidget {
    * {@inheritdoc}
    */
   public function defaultConfiguration() {
-    return parent::defaultConfiguration() + [
-      'no_results_text' => NULL,
-      'auto_submit' => FALSE,
-      'remove_unused_items' => FALSE,
-      'remove_unused_filter' => FALSE,
-    ];
+      return parent::defaultConfiguration() + [
+      'no_results_text' => null,
+      'auto_submit' => false,
+      'remove_unused_items' => false,
+      'remove_unused_filter' => false,
+      'counter_prefix' => '+'
+      ];
   }
 
   /**
    * {@inheritdoc}
    */
-  public static function isApplicable($filter = NULL, array $filter_options = []) {
-    return ($filter_options && ($filter_options['type'] == 'select' || $filter_options['widget'] == 'select' || (array_key_exists('group_info', $filter_options) && array_key_exists('widget', $filter_options['group_info']) && $filter_options['group_info']['widget'] == 'select')));
+  public static function isApplicable($filter = null, array $filter_options = []) {
+      return ($filter_options && ($filter_options['type'] == 'select' || $filter_options['widget'] == 'select' || (array_key_exists('group_info', $filter_options) && array_key_exists('widget', $filter_options['group_info']) && $filter_options['group_info']['widget'] == 'select')));
   }
 
   /**
@@ -50,6 +51,12 @@ class AdvancedSelect extends DefaultWidget {
       '#type' => 'textfield',
       '#title' => $this->t("No results text"),
       '#default_value' => $this->configuration['no_results_text'],
+    ];
+
+    $form['counter_prefix'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t("Prefix for counter"),
+      '#default_value' => $this->configuration['counter_prefix'],
     ];
 
     $form['remove_unused_items'] = [
@@ -75,10 +82,9 @@ class AdvancedSelect extends DefaultWidget {
   public function exposedFormAlter(array &$form, FormStateInterface $form_state) {
     $fieldId = $this->getExposedFilterFieldId();
     parent::exposedFormAlter($form, $form_state);
-    $form[$fieldId]['#attached']['library'][] = 'iq_bef_extensions/advanced_selects';
-
     $filter = $this->handler;
     $element = &$form[$fieldId];
+    $element['#attached']['library'][] = 'iq_bef_extensions/advanced_selects';
 
     if (
       $filter->isExposed()
@@ -110,7 +116,7 @@ class AdvancedSelect extends DefaultWidget {
       'auto_submit' => $this->configuration['auto_submit'],
       'remove_unused_items' => !empty($this->configuration['remove_unused_items']),
       'remove_unused_filter' => !empty($this->configuration['remove_unused_filter']),
+      'counter_prefix' => $this->configuration['counter_prefix'],
     ];
   }
-
 }
