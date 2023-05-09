@@ -59,16 +59,16 @@ class Single extends DefaultWidget {
    * {@inheritdoc}
    */
   public function exposedFormAlter(array &$form, FormStateInterface $form_state) {
+    $field_id = $this->getExposedFilterFieldId();
+    parent::exposedFormAlter($form, $form_state);
     /** @var \Drupal\views\Plugin\views\filter\FilterPluginBase $filter */
     $filter = $this->handler;
     // Form element is designated by the element ID which is user-
     // configurable, and stored differently for grouped filters.
     $exposed_id = $filter->options['expose']['identifier'];
-    $field_id = $this->getExposedFilterFieldId();
+    $element = &$form[$field_id];
 
-    parent::exposedFormAlter($form, $form_state);
-
-    if (!empty($form[$field_id])) {
+    if (!empty($element)) {
       // Views populates missing values in $form_state['input'] with the
       // defaults and a checkbox does not appear in $_GET (or $_POST) so it
       // will appear to be missing when a user submits a form. Because of
@@ -84,7 +84,7 @@ class Single extends DefaultWidget {
       $checked = FALSE;
       // We need to be super careful when working with raw input values. Let's
       // make sure the value exists in our list of possible options.
-      if (in_array($input_value, array_keys($form[$field_id]['#options'])) && $input_value !== 'All') {
+      if (in_array($input_value, array_keys($element['#options'])) && $input_value !== 'All') {
         $checked = (bool) $input_value;
       }
       if ($filter->isExposed()
@@ -103,14 +103,14 @@ class Single extends DefaultWidget {
           ->execute()
           ->fetchField() : 0;
         if ($count < 1) {
-          $form[$field_id]['#access'] = FALSE;
+          $element['#access'] = FALSE;
         }
       }
       if (!isset($form[$field_id]['#access']) || !$form[$field_id]['#access']) {
-        $form[$field_id]['#type'] = 'checkbox';
-        $form[$field_id]['#default_value'] = 0;
-        $form[$field_id]['#return_value'] = 1;
-        $form[$field_id]['#value'] = $checked ? 1 : 0;
+        $element['#type'] = 'checkbox';
+        $element['#default_value'] = 0;
+        $element['#return_value'] = 1;
+        $element['#value'] = $checked ? 1 : 0;
       }
     }
   }
@@ -133,5 +133,4 @@ class Single extends DefaultWidget {
 
     return $is_applicable;
   }
-
 }
