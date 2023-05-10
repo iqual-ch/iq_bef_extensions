@@ -4,6 +4,8 @@ namespace Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter;
 
 use Drupal\views\Views;
 use Drupal\better_exposed_filters\Plugin\better_exposed_filters\filter\FilterWidgetBase;
+use Drupal\Core\Cache\Cache;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\search_api\Plugin\views\query\SearchApiQuery;
 use Drupal\search_api\Item\Item;
 use UnexpectedValueException;
@@ -28,6 +30,19 @@ class DefaultWidget extends FilterWidgetBase {
   protected static $baseCid = [];
 
   /**
+   * {@inheritdoc}
+   */
+  public function exposedFormAlter(array &$form, FormStateInterface $form_state) {
+    parent::exposedFormAlter($form, $form_state);
+    if (!in_array('iq_bef_extensions/localstorage', $form['#attached']['library'])) {
+      if ((empty($this->view->getDisplay()->getExtenders()['ajax_history']) 
+      || !$this->view->getDisplay()->display['display_options']['display_extenders']['ajax_history']['enable_history'])) {
+        $form['#attached']['library'][] = 'iq_bef_extensions/localstorage';  
+      }
+    }
+  }
+
+  /**
    * Loads the entity ids present in the current view execution.
    * 
    * @return array
@@ -48,7 +63,7 @@ class DefaultWidget extends FilterWidgetBase {
 
     // Generate cache id based on total rows view.
     /** @var Drupal\views\Plugin\views\cache\CachePluginBase $cachePlugin */
-    $cachePlugin = $view->display_handler->getPlugin('cache');
+    $cachePlugin = $this->view->display_handler->getPlugin('cache');
     self::$baseCid[$viewKey] = 'iq_bef_extensions:' . $cachePlugin->generateResultsKey();
     $cacheBin = \Drupal::cache('data');
 
@@ -97,7 +112,7 @@ class DefaultWidget extends FilterWidgetBase {
             self::$entityIds[$viewKey]['none'][] = $record->{$entityIdKey};
           }
         }
-        $cacheBin->set(self::$baseCid[$viewKey], self::$entityIds[$viewKey]['none']);
+        $cacheBin->set(self::$baseCid[$viewKey], self::$entityIds[$viewKey]['none'], Cache::PERMANENT, $this->view->getCacheTags());
       }
     }
     if ($relationship != 'none' && !isset(self::$entityIds[$viewKey][$relationship])) {
