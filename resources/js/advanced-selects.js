@@ -49,26 +49,41 @@
                 return label;
               }
 
-              $(document).trigger("iq-bef-extionsions-init-select2-before", [$input, select2options]);
+              options.select2options = select2options;
+              options.count = (function ($input) {
+                let $ul = $input.parent().find('ul');
+                return function () {
+                  let maxWidth = $ul.parent().innerWidth();
+                  let width = 0;
+                  let count = 0;
+                  if (maxWidth > 0) {
+                    $ul.find('li').each(function () {
+                      width += $(this).innerWidth();
+                      $(this).show();
+                      if (width + 35 > maxWidth) {
+                        count++;
+                        $(this).remove();
+                      }
+                    });
+                  }
+                  return count;
+                }
+              })($input);
+
+              // Pass input/options to other scripts before select2 initalization
+              $(document).trigger("iq-bef-extionsions-init-select2-before", [$input, options]);
+
               $chosen = $input.select2(select2options);
               let $ul = $input.parent().find('ul').removeClass('has-counter');
               $ul.prepend('<li class="select2-selection__label">' + $ul.closest('.js-form-item').find('label').text() + '</li>');
-              let maxWidth = $ul.parent().innerWidth();
-              let width = 0;
-              let count = $input.select2('data').length;
-              if (maxWidth > 0) {
-                $ul.find('li').each(function () {
-                  width += $(this).innerWidth();
-                  $(this).show();
-                  if (width + 35 > maxWidth) {
-                    // count++;
-                    $(this).remove();
-                  }
-                });
-                if (count) {
-                  $ul.addClass('has-counter');
-                  $ul.append('<li class="select2-selection__count">' + options.counter_prefix + count + '</li>')
-                }
+
+              let count = options.count;
+              if (typeof count == 'function') {
+                count = count();
+              }
+              if (count) {
+                $ul.addClass('has-counter');
+                $ul.append('<li class="select2-selection__count">' + options.counter_prefix + count + '</li>')
               }
 
               $input.on('select2:select select2:unselect', function (e) {
@@ -77,17 +92,11 @@
                   $ul.prepend('<li class="select2-selection__label">' + $ul.closest('.js-form-item').find('label').text() + '</li>');
                 }
 
-                let maxWidth = $ul.parent().width();
-                let width = 0;
-                let count = $input.select2('data').length;
-                $ul.find('li').each(function () {
-                  width += $(this).width();
-                  $(this).show();
-                  if (width + 35 > maxWidth) {
-                    // count++;
-                    $(this).remove();
-                  }
-                });
+                let count = options.count;
+                if (typeof count == 'function') {
+                  count = count();
+                }
+
                 if (count) {
                   $ul.addClass('has-counter');
                   if ($ul.find('.select2-selection__count').length < 1) {
@@ -120,6 +129,8 @@
                   }
                 });
               }
+
+              // Pass input to other scripts after select2 initalization
               $(document).trigger("iq-bef-extionsions-init-select2-after", [$input]);
             });
           });
