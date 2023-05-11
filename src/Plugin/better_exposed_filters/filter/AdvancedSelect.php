@@ -111,7 +111,7 @@ class AdvancedSelect extends DefaultWidget {
       'type' => 'advanced_select',
       'dataSelector' => Html::getId($fieldId),
       'viewId' => $form['#id'],
-      'placeholder' => $form[$fieldId]['#title'],
+      'placeholder' => $element['#title'],
       'no_results_text' => $this->configuration['no_results_text'],
       'auto_submit' => $this->configuration['auto_submit'],
       'remove_unused_items' => !empty($this->configuration['remove_unused_items']),
