@@ -91,28 +91,34 @@ class Single extends DefaultWidget {
       && empty($this->view->selective_filter)
       && !empty($this->configuration['remove_unused_filter'])
       && !$checked) {
-        [$table, $column, $referenceColumn] = $this->getTableAndColumn();
-        $relationship = ($filter->options['relationship']) ? $filter->options['relationship'] : 'base';
-        $entityIds = $this->getEntityIds($relationship);
-        $count = (!empty($entityIds)) ? \Drupal::database()
-          ->select($table, 't')
-          ->condition('t.' . $referenceColumn, $entityIds, 'IN')
-          ->condition('t.' . $column, 0, '<>')
-          ->fields('t', [$column])
-          ->countQuery()
-          ->execute()
-          ->fetchField() : 0;
-        if ($count < 1) {
+        $relationship = ($filter->options['relationship']) ? $filter->options['relationship'] : 'none';
+        if ($this->getFilterCount($relationship) < 1) {
           $element['#access'] = FALSE;
         }
       }
-      if (!isset($form[$field_id]['#access']) || !$form[$field_id]['#access']) {
+      if (!isset($element['#access']) || !$element['#access']) {
         $element['#type'] = 'checkbox';
         $element['#default_value'] = 0;
         $element['#return_value'] = 1;
         $element['#value'] = $checked ? 1 : 0;
       }
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected function getFilterCount($relationship) {
+    [$table, $column, $referenceColumn] = $this->getTableAndColumn();
+    $entityIds = $this->getEntityIds($relationship);
+    return (!empty($entityIds)) ? \Drupal::database()
+      ->select($table, 't')
+      ->condition('t.' . $referenceColumn, $entityIds, 'IN')
+      ->condition('t.' . $column, 0, '<>')
+      ->fields('t', [$column])
+      ->countQuery()
+      ->execute()
+      ->fetchField() : 0;
   }
 
   /**

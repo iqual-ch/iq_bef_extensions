@@ -205,7 +205,15 @@ class DefaultWidget extends FilterWidgetBase {
     return $ids;
   }
 
-  public function getFilterIds($relationship = 'none') {
+  /**
+   * Return the available ids for this filter on the given relationship.
+   *
+   * @param string $relationship
+   *   The relationship to return the ids for.
+   * @return array
+   *   The available ids on this filter.
+   */  
+  protected function getFilterIds($relationship = 'none') {
     // Get table and columns for 
     [$table, $column, $referenceColumn] = $this->getTableAndColumn();
 
@@ -230,6 +238,18 @@ class DefaultWidget extends FilterWidgetBase {
       \Drupal::cache()->set($cid, $ids);
       return $ids;
     }
+  }
+
+  /**
+   * Return the count of available ids for this filter on the given relationship.
+   *
+   * @param string $relationship
+   *   The relationship to return the count for.
+   * @return int
+   *   The count of available ids on this filter.
+   */
+  protected function getFilterCount($relationship) {
+    return count($this->getFilterIds($relationship));
   }
 
   /**
