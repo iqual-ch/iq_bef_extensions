@@ -32,3 +32,11 @@ function iq_bef_extensions_update_9000() {
     $view->save(TRUE);
   }
 }
+
+/**
+ * Install views_ajax_history mmodule.
+ */
+function iq_bef_extensions_update_9001() {
+  $installer = \Drupal::service('module_installer');
+  $installer->install(['views_ajax_history']);
+}
