@@ -2,8 +2,6 @@
 
 /**
  * Update iq_single configuration.
- *
- * @return void
  */
 function iq_bef_extensions_update_9000() {
   $config_factory = \Drupal::configFactory();
@@ -34,7 +32,7 @@ function iq_bef_extensions_update_9000() {
 }
 
 /**
- * Install views_ajax_history mmodule.
+ * Install views_ajax_history module.
  */
 function iq_bef_extensions_update_9001() {
   $installer = \Drupal::service('module_installer');
