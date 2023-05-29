@@ -15,6 +15,9 @@
   },
   "extra": {
     "patches": {
+      "drupal/core": {
+        "#956186: Allow AJAX to use GET requests": "https://www.drupal.org/files/issues/2023-03-30/956186-174-reroll-95-185.patch"
+      },
       "drupal/views_ajax_history": {
         "#3216707: When we have selected filters and go back, all selected values was unchecked": "https://www.drupal.org/files/issues/2021-06-01/views_ajax_history-search_checkbox_in_form_values.patch",
         "#3107126: Use Fullscreen Progress Indicator": "https://www.drupal.org/files/issues/2020-01-17/views_ajax_history-3107126-2.patch",

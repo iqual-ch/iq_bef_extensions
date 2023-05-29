@@ -5,13 +5,11 @@ namespace Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter;
 use Drupal\views\Views;
 use Drupal\better_exposed_filters\Plugin\better_exposed_filters\filter\FilterWidgetBase;
 use Drupal\Core\Cache\Cache;
-use Drupal\Core\Form\FormStateInterface;
 use Drupal\search_api\Plugin\views\query\SearchApiQuery;
 use Drupal\search_api\Item\Item;
-use UnexpectedValueException;
 
 /**
- *
+ * Base class for widgets.
  */
 class DefaultWidget extends FilterWidgetBase {
 
@@ -24,35 +22,32 @@ class DefaultWidget extends FilterWidgetBase {
 
   /**
    * Contains the base cid per view.
-   * 
+   *
    * @var string[]
    */
   protected static $baseCid = [];
 
   /**
-   * {@inheritdoc}
+   * Generates the unique key for the current view.
+   *
+   * @return string
+   *   The view key.
    */
-  public function exposedFormAlter(array &$form, FormStateInterface $form_state) {
-    parent::exposedFormAlter($form, $form_state);
-    if (!in_array('iq_bef_extensions/localstorage', $form['#attached']['library'])) {
-      if ((empty($this->view->getDisplay()->getExtenders()['ajax_history']) 
-      || !$this->view->getDisplay()->display['display_options']['display_extenders']['ajax_history']['enable_history'])) {
-        $form['#attached']['library'][] = 'iq_bef_extensions/localstorage';  
-      }
-    }
+  protected function getViewKey() {
+    return $this->view->id() . '_' . $this->view->current_display;
   }
 
   /**
    * Loads the entity ids present in the current view execution.
-   * 
+   *
    * @return array
    *   The entity ids present in the view.
    */
   protected function getEntityIds($relationship = 'none'): array {
 
-    $viewKey = $this->view->id() . '_' . $this->view->current_display;
+    $viewKey = $this->getViewKey();
 
-    // Prepare the view using the total row query.
+    // Prepare the view using the total row query to acces the cache plugin.
     $view = Views::getView($this->view->id());
     $view->setDisplay($this->view->current_display);
     $view->setArguments($this->view->args);
@@ -132,13 +127,13 @@ class DefaultWidget extends FilterWidgetBase {
    *
    * @return array
    *   The table and column.
-   * 
-   * @throws UnexpectedValueException
+   *
+   * @throws \UnexpectedValueException
    */
   protected function getTableAndColumn(): array {
     $table = $column = '';
     $referenceColumn = 'entity_id';
-    $entityType = null;
+    $entityType = NULL;
     if (empty($this->handler->definition['table']) || empty($this->handler->definition['field'])) {
       if ($this->view->getBaseEntityType()) {
         $entityType = $this->view->getBaseEntityType()->id();
@@ -150,7 +145,7 @@ class DefaultWidget extends FilterWidgetBase {
         }, $dataSources)[0];
       }
       else {
-        throw new UnexpectedValueException(sprintf('Could not determine base type of view %s.', $this->view->id()));
+        throw new \UnexpectedValueException(sprintf('Could not determine base type of view %s.', $this->view->id()));
       }
       $storage = \Drupal::entityTypeManager()->getStorage('field_storage_config')->load($entityType . '.' . $this->getExposedFilterFieldId());
       if (empty($storage)) {
@@ -160,7 +155,8 @@ class DefaultWidget extends FilterWidgetBase {
           $column = $this->getExposedFilterFieldId();
           $referenceColumn = $typeDefinition->getKey('id');
         }
-      } else {
+      }
+      else {
         $table = $entityType . '__' . $storage->getName();
         $column = $storage->getName() . '_' . $storage->getMainPropertyName();
       }
@@ -170,7 +166,7 @@ class DefaultWidget extends FilterWidgetBase {
       $table = $this->handler->definition['table'];
     }
     if (empty($table) || empty($column)) {
-      throw new UnexpectedValueException(sprintf('Could not determine table or column for %s', $this->view->id()));
+      throw new \UnexpectedValueException(sprintf('Could not determine table or column for %s', $this->view->id()));
     }
     return [$table, $column, $referenceColumn];
   }
@@ -184,6 +180,8 @@ class DefaultWidget extends FilterWidgetBase {
    *   The field table.
    * @param string $column
    *   The value column.
+   * @param string $referenceColumn
+   *   The reference column.
    *
    * @return array|null
    *   The referenced values or null on error.
@@ -225,25 +223,19 @@ class DefaultWidget extends FilterWidgetBase {
    *
    * @param string $relationship
    *   The relationship to return the ids for.
+   *
    * @return array
    *   The available ids on this filter.
-   */  
+   */
   protected function getFilterIds($relationship = 'none') {
-    // Get table and columns for 
+    // Get table and columns for.
     [$table, $column, $referenceColumn] = $this->getTableAndColumn();
 
     // Check if entity ids have been initialized.
-    $viewKey = $this->view->id() . '_' . $this->view->current_display;
-    $entityIds = [];
-    if (!isset(self::$entityIds[$viewKey][$relationship])) {
-      $entityIds = $this->getEntityIds();
-    }
-    else {
-      $entityIds = self::$entityIds[$viewKey][$relationship];
-    }
+    $entityIds = $this->getEntityIds($relationship);
 
-    // Check for cached values
-    $cid = self::$baseCid[$viewKey] . '-' . $table . '-' . $column . '-' . $referenceColumn;
+    // Check for cached values.
+    $cid = self::$baseCid[$this->getViewKey()] . '-' . $table . '-' . $column . '-' . $referenceColumn;
     $cacheData = \Drupal::cache()->get($cid);
     if ($cacheData) {
       return $cacheData->data;
@@ -260,6 +252,7 @@ class DefaultWidget extends FilterWidgetBase {
    *
    * @param string $relationship
    *   The relationship to return the count for.
+   *
    * @return int
    *   The count of available ids on this filter.
    */
@@ -299,4 +292,5 @@ class DefaultWidget extends FilterWidgetBase {
       }
     }
   }
+
 }
