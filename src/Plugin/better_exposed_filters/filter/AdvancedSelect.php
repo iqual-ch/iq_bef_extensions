@@ -19,20 +19,20 @@ class AdvancedSelect extends DefaultWidget {
    * {@inheritdoc}
    */
   public function defaultConfiguration() {
-      return parent::defaultConfiguration() + [
-      'no_results_text' => null,
-      'auto_submit' => false,
-      'remove_unused_items' => false,
-      'remove_unused_filter' => false,
-      'counter_prefix' => '+'
-      ];
+    return parent::defaultConfiguration() + [
+      'no_results_text' => NULL,
+      'auto_submit' => FALSE,
+      'remove_unused_items' => FALSE,
+      'remove_unused_filter' => FALSE,
+      'counter_prefix' => '+',
+    ];
   }
 
   /**
    * {@inheritdoc}
    */
-  public static function isApplicable($filter = null, array $filter_options = []) {
-      return ($filter_options && ($filter_options['type'] == 'select' || $filter_options['widget'] == 'select' || (array_key_exists('group_info', $filter_options) && array_key_exists('widget', $filter_options['group_info']) && $filter_options['group_info']['widget'] == 'select')));
+  public static function isApplicable($filter = NULL, array $filter_options = []) {
+    return ($filter_options && ($filter_options['type'] == 'select' || $filter_options['widget'] == 'select' || (array_key_exists('group_info', $filter_options) && array_key_exists('widget', $filter_options['group_info']) && $filter_options['group_info']['widget'] == 'select')));
   }
 
   /**
@@ -100,7 +100,8 @@ class AdvancedSelect extends DefaultWidget {
         && empty($form_state->getUserInput()[$fieldId])
       ) {
         $element['#access'] = FALSE;
-      } else {
+      }
+      else {
         $this->filterElementWithOptions($element, $ids);
       }
     }
@@ -119,4 +120,5 @@ class AdvancedSelect extends DefaultWidget {
       'counter_prefix' => $this->configuration['counter_prefix'],
     ];
   }
+
 }
