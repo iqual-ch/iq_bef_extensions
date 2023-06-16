@@ -260,7 +260,7 @@
                   if (valueMax - this.options.range.min < (this.options.range.max - this.options.range.min) * 5 / 6) {
                     $slider.closest('.iq-bef-slider-holder').addClass('max-tooltip-shift');
                   }
-                  if (valueMin != sliderMin && valueMax != sliderMax) {
+                  if (valueMin != sliderMin || valueMax != sliderMax || $min.val() || $max.val()) {
                     $slider.closest('.iq-bef-slider-holder').find('.preview-values').html(this.getTooltips()[0].textContent + ' – ' + this.getTooltips()[1].textContent);
                   }
                 });
