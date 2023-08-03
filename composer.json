@@ -12,6 +12,12 @@
     "drupal/better_exposed_filters": "^6.0",
     "drupal/vefl": "^3.0",
     "php": "^8.1",
-    "drupal/core": "^9.5 || ^10"
+    "drupal/core": "^9.5 || ^10",
+    "mglaman/composer-drupal-lenient": "^1.0"
+  },
+  "extra": {
+    "drupal-lenient": {
+      "allowed-list": ["drupal/vefl"]
+    }
   }
 }
