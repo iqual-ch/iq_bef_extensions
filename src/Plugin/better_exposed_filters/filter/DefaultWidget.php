@@ -2,15 +2,13 @@
 
 namespace Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter;
 
-use Drupal\views\Views;
 use Drupal\better_exposed_filters\Plugin\better_exposed_filters\filter\FilterWidgetBase;
-use Drupal\Core\Entity\EntityInterface;
-use Drupal\search_api\Plugin\views\query\SearchApiQuery;
 use Drupal\search_api\Item\Item;
-use UnexpectedValueException;
+use Drupal\search_api\Plugin\views\query\SearchApiQuery;
+use Drupal\views\Views;
 
 /**
- *
+ * Default Widget.
  */
 class DefaultWidget extends FilterWidgetBase {
 
@@ -92,8 +90,8 @@ class DefaultWidget extends FilterWidgetBase {
    *
    * @return array
    *   The table and column.
-   * 
-   * @throws UnexpectedValueException
+   *
+   * @throws \UnexpectedValueException
    */
   protected function getTableAndColumn(): array {
     $table = $column = '';
@@ -101,13 +99,15 @@ class DefaultWidget extends FilterWidgetBase {
     if (empty($this->handler->definition['table']) || empty($this->handler->definition['field'])) {
       if ($this->view->getBaseEntityType()) {
         $entityType = $this->view->getBaseEntityType()->id();
-      } elseif ($this->view->getQuery() instanceof SearchApiQuery) {
+      }
+      elseif ($this->view->getQuery() instanceof SearchApiQuery) {
         $dataSources = array_keys($this->view->query->getIndex()->getDatasources());
         $entityType = array_map(function ($key) {
           return explode(':', $key)[1];
         }, $dataSources)[0];
-      } else {
-        throw new UnexpectedValueException(sprintf('Could not determine base type of view %s.', $this->view->id()));
+      }
+      else {
+        throw new \UnexpectedValueException(sprintf('Could not determine base type of view %s.', $this->view->id()));
       }
       $storage = \Drupal::entityTypeManager()->getStorage('field_storage_config')->load($entityType . '.' . $this->getExposedFilterFieldId());
       if (empty($storage)) {
@@ -117,16 +117,18 @@ class DefaultWidget extends FilterWidgetBase {
           $column = $this->getExposedFilterFieldId();
           $referenceColumn = $typeDefinition->getKey('id');
         }
-      } else {
+      }
+      else {
         $table = $entityType . '__' . $storage->getName();
         $column = $storage->getName() . '_' . $storage->getMainPropertyName();
       }
-    } else {
+    }
+    else {
       $column = $this->handler->definition['field'];
       $table = $this->handler->definition['table'];
     }
     if (empty($table) || empty($column)) {
-      throw new UnexpectedValueException(sprintf('Could not determine table or column for %s', $this->view->id()));
+      throw new \UnexpectedValueException(sprintf('Could not determine table or column for %s', $this->view->id()));
     }
     return [$table, $column, $referenceColumn];
   }
@@ -140,6 +142,8 @@ class DefaultWidget extends FilterWidgetBase {
    *   The field table.
    * @param string $column
    *   The value column.
+   * @param string $referenceColumn
+   *   The reference column.
    *
    * @return array|null
    *   The referenced values or null on error.
