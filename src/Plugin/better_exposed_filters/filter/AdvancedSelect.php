@@ -96,7 +96,8 @@ class AdvancedSelect extends DefaultWidget {
         && empty($form_state->getUserInput()[$fieldId])
       ) {
         $element['#access'] = FALSE;
-      } else {
+      }
+      else {
         $this->filterElementWithOptions($element, $ids);
       }
     }
