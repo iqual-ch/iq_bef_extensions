@@ -3,7 +3,6 @@
 namespace Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter;
 
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter\DefaultWidget;
 
 /**
  * Single on/off widget implementation.
@@ -91,7 +90,7 @@ class Single extends DefaultWidget {
       && empty($this->view->selective_filter)
       && !empty($this->configuration['remove_unused_filter'])
       && !$checked) {
-        $relationship = ($filter->options['relationship']) ? $filter->options['relationship'] : 'none';
+        $relationship = ($filter->options['relationship']) ?: 'none';
         if ($this->getFilterCount($relationship) < 1) {
           $element['#access'] = FALSE;
         }
@@ -133,7 +132,7 @@ class Single extends DefaultWidget {
       return $is_applicable;
     }
 
-    if (is_a($filter, 'Drupal\views\Plugin\views\filter\BooleanOperator') || ($filter->isAGroup() && count($filter->options['group_info']['group_items']) == 1)) {
+    if (is_a($filter, 'Drupal\views\Plugin\views\filter\BooleanOperator') || ($filter->isAGroup() && (is_countable($filter->options['group_info']['group_items']) ? count($filter->options['group_info']['group_items']) : 0) == 1)) {
       $is_applicable = TRUE;
     }
 

@@ -92,7 +92,7 @@ class AdvancedSelect extends DefaultWidget {
       && !empty($this->configuration['remove_unused_items'])
     ) {
 
-      $relationship = ($filter->options['relationship']) ? $filter->options['relationship'] : 'none';
+      $relationship = $filter->options['relationship'] ?: 'none';
       $ids = $this->getFilterIds($relationship);
       if (
         empty($ids)
