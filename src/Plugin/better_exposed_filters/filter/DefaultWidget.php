@@ -248,7 +248,7 @@ class DefaultWidget extends FilterWidgetBase {
   }
 
   /**
-   * Return the count of available ids for this filter on the given relationship.
+   * Return number of available ids for this filter on the given relationship.
    *
    * @param string $relationship
    *   The relationship to return the count for.

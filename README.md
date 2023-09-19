@@ -73,8 +73,6 @@ Example code:
 
     namespace Drupal\custom_module\Plugin\better_exposed_filters\filter;
 
-    use Drupal\Component\Utility\Html;
-    use Drupal\Core\Form\FormStateInterface;
     use Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter\DefaultWidget;
 
     /**
