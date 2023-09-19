@@ -24,6 +24,7 @@ class AdvancedSelect extends DefaultWidget {
       'auto_submit' => FALSE,
       'remove_unused_items' => FALSE,
       'remove_unused_filter' => FALSE,
+      'counter_prefix' => '+',
     ];
   }
 
@@ -52,6 +53,12 @@ class AdvancedSelect extends DefaultWidget {
       '#default_value' => $this->configuration['no_results_text'],
     ];
 
+    $form['counter_prefix'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t("Prefix for counter"),
+      '#default_value' => $this->configuration['counter_prefix'],
+    ];
+
     $form['remove_unused_items'] = [
       '#type' => 'checkbox',
       '#title' => $this->t("Remove unused items"),
@@ -75,10 +82,9 @@ class AdvancedSelect extends DefaultWidget {
   public function exposedFormAlter(array &$form, FormStateInterface $form_state) {
     $fieldId = $this->getExposedFilterFieldId();
     parent::exposedFormAlter($form, $form_state);
-    $form[$fieldId]['#attached']['library'][] = 'iq_bef_extensions/advanced_selects';
-
     $filter = $this->handler;
     $element = &$form[$fieldId];
+    $element['#attached']['library'][] = 'iq_bef_extensions/advanced_selects';
 
     if (
       $filter->isExposed()
@@ -86,17 +92,16 @@ class AdvancedSelect extends DefaultWidget {
       && !empty($this->configuration['remove_unused_items'])
     ) {
 
-      $relationship = ($filter->options['relationship']) ? $filter->options['relationship'] : 'none';
-      $entityIds = $this->getEntityIds($relationship);
-      [$table, $column, $referenceColumn] = $this->getTableAndColumn();
-      $ids = $this->getReferencedValues($entityIds, $table, $column, $referenceColumn);
+      $relationship = $filter->options['relationship'] ?: 'none';
+      $ids = $this->getFilterIds($relationship);
       if (
         empty($ids)
         && !empty($this->configuration['remove_unused_filter'])
         && empty($form_state->getUserInput()[$fieldId])
       ) {
         $element['#access'] = FALSE;
-      } else {
+      }
+      else {
         $this->filterElementWithOptions($element, $ids);
       }
     }
@@ -107,11 +112,12 @@ class AdvancedSelect extends DefaultWidget {
       'type' => 'advanced_select',
       'dataSelector' => Html::getId($fieldId),
       'viewId' => $form['#id'],
-      'placeholder' => $form[$fieldId]['#title'],
+      'placeholder' => $element['#title'],
       'no_results_text' => $this->configuration['no_results_text'],
       'auto_submit' => $this->configuration['auto_submit'],
       'remove_unused_items' => !empty($this->configuration['remove_unused_items']),
       'remove_unused_filter' => !empty($this->configuration['remove_unused_filter']),
+      'counter_prefix' => $this->configuration['counter_prefix'],
     ];
   }
 

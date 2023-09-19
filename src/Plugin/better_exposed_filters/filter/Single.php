@@ -3,7 +3,6 @@
 namespace Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter;
 
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter\DefaultWidget;
 
 /**
  * Single on/off widget implementation.
@@ -22,7 +21,7 @@ class Single extends DefaultWidget {
     return parent::defaultConfiguration() + [
       'no_results_text' => NULL,
       'auto_submit' => FALSE,
-      'remove_unused_items' => FALSE,
+      'remove_unused_filter' => FALSE,
     ];
   }
 
@@ -45,11 +44,11 @@ class Single extends DefaultWidget {
       '#min' => 0,
     ];
 
-    $form['remove_unused_items'] = [
+    $form['remove_unused_filter'] = [
       '#type' => 'checkbox',
-      '#title' => $this->t('Remove unused items'),
-      '#default_value' => $this->configuration['remove_unused_items'],
-      '#min' => 0,
+      '#title' => $this->t("Remove filter if not used"),
+      '#description' => $this->t("Remove the filter if it doesn't affect the results."),
+      '#default_value' => $this->configuration['remove_unused_filter'],
     ];
 
     return $form;
@@ -59,16 +58,16 @@ class Single extends DefaultWidget {
    * {@inheritdoc}
    */
   public function exposedFormAlter(array &$form, FormStateInterface $form_state) {
+    $field_id = $this->getExposedFilterFieldId();
+    parent::exposedFormAlter($form, $form_state);
     /** @var \Drupal\views\Plugin\views\filter\FilterPluginBase $filter */
     $filter = $this->handler;
     // Form element is designated by the element ID which is user-
     // configurable, and stored differently for grouped filters.
     $exposed_id = $filter->options['expose']['identifier'];
-    $field_id = $this->getExposedFilterFieldId();
+    $element = &$form[$field_id];
 
-    parent::exposedFormAlter($form, $form_state);
-
-    if (!empty($form[$field_id])) {
+    if (!empty($element)) {
       // Views populates missing values in $form_state['input'] with the
       // defaults and a checkbox does not appear in $_GET (or $_POST) so it
       // will appear to be missing when a user submits a form. Because of
@@ -84,35 +83,41 @@ class Single extends DefaultWidget {
       $checked = FALSE;
       // We need to be super careful when working with raw input values. Let's
       // make sure the value exists in our list of possible options.
-      if (in_array($input_value, array_keys($form[$field_id]['#options'])) && $input_value !== 'All') {
+      if (in_array($input_value, array_keys($element['#options'])) && $input_value !== 'All') {
         $checked = (bool) $input_value;
       }
       if ($filter->isExposed()
       && empty($this->view->selective_filter)
-      && !empty($this->configuration['remove_unused_items'])
+      && !empty($this->configuration['remove_unused_filter'])
       && !$checked) {
-        [$table, $column, $referenceColumn] = $this->getTableAndColumn();
-        $relationship = ($filter->options['relationship']) ? $filter->options['relationship'] : 'base';
-        $entityIds = $this->getEntityIds($relationship);
-        $count = (!empty($entityIds)) ? \Drupal::database()
-          ->select($table, 't')
-          ->condition('t.' . $referenceColumn, $entityIds, 'IN')
-          ->condition('t.' . $column, 0, '<>')
-          ->fields('t', [$column])
-          ->countQuery()
-          ->execute()
-          ->fetchField() : 0;
-        if ($count < 1 && !$input_value) {
-          $form[$field_id]['#access'] = FALSE;
+        $relationship = ($filter->options['relationship']) ?: 'none';
+        if ($this->getFilterCount($relationship) < 1) {
+          $element['#access'] = FALSE;
         }
       }
-      if (!isset($form[$field_id]['#access']) || !$form[$field_id]['#access']) {
-        $form[$field_id]['#type'] = 'checkbox';
-        $form[$field_id]['#default_value'] = 0;
-        $form[$field_id]['#return_value'] = 1;
-        $form[$field_id]['#value'] = $checked ? 1 : 0;
+      if (!isset($element['#access']) || !$element['#access']) {
+        $element['#type'] = 'checkbox';
+        $element['#default_value'] = 0;
+        $element['#return_value'] = 1;
+        $element['#value'] = $checked ? 1 : 0;
       }
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected function getFilterCount($relationship) {
+    [$table, $column, $referenceColumn] = $this->getTableAndColumn();
+    $entityIds = $this->getEntityIds($relationship);
+    return (!empty($entityIds)) ? \Drupal::database()
+      ->select($table, 't')
+      ->condition('t.' . $referenceColumn, $entityIds, 'IN')
+      ->condition('t.' . $column, 0, '<>')
+      ->fields('t', [$column])
+      ->countQuery()
+      ->execute()
+      ->fetchField() : 0;
   }
 
   /**
@@ -127,11 +132,10 @@ class Single extends DefaultWidget {
       return $is_applicable;
     }
 
-    if (is_a($filter, 'Drupal\views\Plugin\views\filter\BooleanOperator') || ($filter->isAGroup() && count($filter->options['group_info']['group_items']) == 1)) {
+    if (is_a($filter, 'Drupal\views\Plugin\views\filter\BooleanOperator') || ($filter->isAGroup() && (is_countable($filter->options['group_info']['group_items']) ? count($filter->options['group_info']['group_items']) : 0) == 1)) {
       $is_applicable = TRUE;
     }
 
     return $is_applicable;
   }
-
 }
