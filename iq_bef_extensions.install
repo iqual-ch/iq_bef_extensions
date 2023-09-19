@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * @file
+ * Contains the update hooks of iq_bef_extensions.
+ */
+
+/**
+ * Update iq_single configuration.
+ */
+function iq_bef_extensions_update_9000() {
+  $config_factory = \Drupal::configFactory();
+
+  // Find all views configs.
+  foreach ($config_factory->listAll('views.view.') as $view_config_name) {
+    $view = $config_factory->getEditable($view_config_name);
+
+    // Go through each display on each view.
+    $displays = $view->get('display');
+    foreach ($displays as $display_name => $display) {
+      // Go through all the bef filters on each display and
+      // find those currently using a iq_bef_extension plugin.
+      if (!empty($display['display_options']['exposed_form']['options']['bef']) && !empty($display['display_options']['exposed_form']['options']['bef']['filter'])) {
+        foreach ($display['display_options']['exposed_form']['options']['bef']['filter'] as $id => $filter) {
+          if ($filter['plugin_id'] == 'iq_single') {
+            $base = "display.$display_name.display_options.exposed_form.options.bef.filter.$id";
+            if ($view->get($base . '.remove_unused_filter') === NULL) {
+              $view->set($base . '.remove_unused_filter', $view->get($base . '.remove_unused_items'));
+            }
+            $view->clear($base . '.remove_unused_items');
+          }
+        }
+      }
+    }
+    $view->save(TRUE);
+  }
+}
+
+/**
+ * Install ajax history dependency, update config.
+ *
+ * Installs views_ajax_history and enables it on the views.
+ */
+function iq_bef_extensions_update_9001() {
+  $installer = \Drupal::service('module_installer');
+  $installer->install(['views_ajax_history']);
+
+  // @todo Enable ajax history on all views.
+}
