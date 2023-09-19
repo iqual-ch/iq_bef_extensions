@@ -37,13 +37,20 @@ function iq_bef_extensions_update_9000() {
 }
 
 /**
- * Install ajax history dependency, update config.
- *
- * Installs views_ajax_history and enables it on the views.
+ * Install ajax history dependency.
  */
 function iq_bef_extensions_update_9001() {
   $installer = \Drupal::service('module_installer');
   $installer->install(['views_ajax_history']);
+}
 
-  // @todo Enable ajax history on all views.
+/**
+ * Enable views_ajax_history as display extender.
+ */
+function iq_bef_extensions_update_9002() {
+  $view_settings = \Drupal::configFactory()->getEditable('views.settings');
+  $display_extenders = $view_settings->get('display_extenders');
+  $display_extenders['ajax_history'] = "ajax_history";
+  $view_settings->set('display_extenders', $display_extenders);
+  $view_settings->save();
 }
