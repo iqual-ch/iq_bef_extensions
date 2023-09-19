@@ -115,8 +115,6 @@
                   e.preventDefault();
                   $min.val('');
                   $max.val('');
-                  // Drupal.resetFilterValue(formId, fieldNameMin);
-                  // Drupal.resetFilterValue(formId, fieldNameMax);
                   $form.find('[data-drupal-selector*="edit-submit"]').click();
                 });
                 $dropdwon.prepend($btnReset);
@@ -139,19 +137,11 @@
                 if ($min.val()) {
                   startMin = parseFloat($min.val());
                 }
-                // if (Drupal.retrieveFilterValue($min.closest('form').attr('id'), $min.attr('name'))) {
-                //   startMin = Drupal.retrieveFilterValue($min.closest('form').attr('id'), $min.attr('name'));
-                //   $min.val(startMin);
-                // }
 
                 var startMax = sliderMax;
                 if ($max.val()) {
                   startMax = parseFloat($max.val());
                 }
-                // if (Drupal.retrieveFilterValue($max.closest('form').attr('id'), $max.attr('name'))) {
-                //   startMax = Drupal.retrieveFilterValue($max.closest('form').attr('id'), $max.attr('name'));
-                //   $max.val(startMax);
-                // }
 
                 noUiSlider.create($slider[0], {
                   start: [startMin, startMax],
@@ -234,16 +224,12 @@
                     valueMax = parseFloat(values[1]);
 
                   if (!(valueMin == sliderMin && valueMax == sliderMax)) {
-                    // Drupal.storeFilterValues(formId, fieldNameMin, valueMin);
-                    // Drupal.storeFilterValues(formId, fieldNameMax, valueMax);
                     $min.val(valueMin);
                     $max.val(valueMax);
                   } else {
                     if (!(defaultMin == sliderMin && defaultMax == sliderMax)) {
                       $min.val('');
                       $max.val('');
-                      // Drupal.resetFilterValue(formId, fieldNameMin);
-                      // Drupal.resetFilterValue(formId, fieldNameMax);
                     }
                   }
                 });
