@@ -4,13 +4,12 @@ namespace Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter;
 
 use Drupal\views\Views;
 use Drupal\better_exposed_filters\Plugin\better_exposed_filters\filter\FilterWidgetBase;
-use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Cache\Cache;
 use Drupal\search_api\Plugin\views\query\SearchApiQuery;
 use Drupal\search_api\Item\Item;
-use UnexpectedValueException;
 
 /**
- *
+ * Base class for widgets.
  */
 class DefaultWidget extends FilterWidgetBase {
 
@@ -22,57 +21,93 @@ class DefaultWidget extends FilterWidgetBase {
   protected static $entityIds = [];
 
   /**
-   * Loads the entity ids present in the current view.
+   * Contains the base cid per view.
    *
-   * The entity ids are saved statically, keyed by view id.
+   * @var string[]
+   */
+  protected static $baseCid = [];
+
+  /**
+   * Generates the unique key for the current view.
+   *
+   * @return string
+   *   The view key.
+   */
+  protected function getViewKey() {
+    return $this->view->id() . '_' . $this->view->current_display;
+  }
+
+  /**
+   * Loads the entity ids present in the current view execution.
    *
    * @return array
    *   The entity ids present in the view.
    */
   protected function getEntityIds($relationship = 'none'): array {
 
-    $viewKey = $this->view->id() . '_' . $this->view->current_display;
+    $viewKey = $this->getViewKey();
 
-    // Only execute view once per request.
+    // Prepare the view using the total row query to acces the cache plugin.
+    $view = Views::getView($this->view->id());
+    $view->setDisplay($this->view->current_display);
+    $view->setArguments($this->view->args);
+    $view->setExposedInput([]);
+    $view->setItemsPerPage(0);
+    $view->selective_filter = TRUE;
+    $view->get_total_rows = TRUE;
+
+    // Generate cache id based on total rows view.
+    /** @var Drupal\views\Plugin\views\cache\CachePluginBase $cachePlugin */
+    $cachePlugin = $this->view->display_handler->getPlugin('cache');
+    self::$baseCid[$viewKey] = 'iq_bef_extensions:' . $cachePlugin->generateResultsKey();
+    $cacheBin = \Drupal::cache('data');
+
+    // Only retrieve data once per request.
     if (!isset(self::$entityIds[$viewKey]['none'])) {
-
-      // Execute the view using the total row query.
-      $view = Views::getView($this->view->id());
-      $view->setDisplay($this->view->current_display);
-
-      $view->setArguments($this->view->args);
-      $view->setExposedInput([]);
-      $view->setItemsPerPage(0);
-      $view->selective_filter = TRUE;
-      $view->get_total_rows = TRUE;
-      $view->preExecute();
-      $view->execute();
-
-      if (!$this->view->getQuery() instanceof SearchApiQuery) {
-        $entityIdKey = $view->getBaseEntityType()->getKey('id');
-      }
 
       // Create arrays for entity ids.
       self::$entityIds[$viewKey] = [];
       // Index none contains the base entity type ids.
       self::$entityIds[$viewKey]['none'] = [];
 
-      // Retrieve the result from the view query.
-      /** @var \Drupal\Core\Database\Query\Select $query */
-      $query = $view->query->query();
-      $result = $query->execute();
-      foreach ($result as $record) {
+      // Check cache for data.
+      $cacheData = $cacheBin->get(self::$baseCid[$viewKey]);
+      if ($cacheData) {
+        self::$entityIds[$viewKey]['none'] = $cacheData->data;
+      }
+      else {
 
-        if ($record instanceof Item) {
-          // Handling search api.
-          $match = [];
-          preg_match('/([\d]+)/', $record->getId(), $match);
-          self::$entityIds[$viewKey]['none'][] = $match[0];
+        // Execute view to get the data.
+        $view->preExecute();
+        $view->execute();
+
+        // Get id key if Search Api is used as the backend.
+        if (!$this->view->getQuery() instanceof SearchApiQuery) {
+          $entityIdKey = $view->getBaseEntityType()->getKey('id');
         }
-        else {
-          // Handling database query.
-          self::$entityIds[$viewKey]['none'][] = $record->{$entityIdKey};
+
+        // Create arrays for entity ids.
+        self::$entityIds[$viewKey] = [];
+        // Index none contains the base entity type ids.
+        self::$entityIds[$viewKey]['none'] = [];
+
+        // Retrieve the result from the view query.
+        /** @var \Drupal\Core\Database\Query\Select $query */
+        $query = $view->query->query();
+        $result = $query->execute();
+        foreach ($result as $record) {
+          if ($record instanceof Item) {
+            // Handling search api.
+            $match = [];
+            preg_match('/([\d]+)/', $record->getId(), $match);
+            self::$entityIds[$viewKey]['none'][] = $match[0];
+          }
+          else {
+            // Handling database query.
+            self::$entityIds[$viewKey]['none'][] = $record->{$entityIdKey};
+          }
         }
+        $cacheBin->set(self::$baseCid[$viewKey], self::$entityIds[$viewKey]['none'], Cache::PERMANENT, $this->view->getCacheTags());
       }
     }
     if ($relationship != 'none' && !isset(self::$entityIds[$viewKey][$relationship])) {
@@ -92,22 +127,25 @@ class DefaultWidget extends FilterWidgetBase {
    *
    * @return array
    *   The table and column.
-   * 
-   * @throws UnexpectedValueException
+   *
+   * @throws \UnexpectedValueException
    */
   protected function getTableAndColumn(): array {
     $table = $column = '';
     $referenceColumn = 'entity_id';
+    $entityType = NULL;
     if (empty($this->handler->definition['table']) || empty($this->handler->definition['field'])) {
       if ($this->view->getBaseEntityType()) {
         $entityType = $this->view->getBaseEntityType()->id();
-      } elseif ($this->view->getQuery() instanceof SearchApiQuery) {
+      }
+      elseif ($this->view->getQuery() instanceof SearchApiQuery) {
         $dataSources = array_keys($this->view->query->getIndex()->getDatasources());
         $entityType = array_map(function ($key) {
           return explode(':', $key)[1];
         }, $dataSources)[0];
-      } else {
-        throw new UnexpectedValueException(sprintf('Could not determine base type of view %s.', $this->view->id()));
+      }
+      else {
+        throw new \UnexpectedValueException(sprintf('Could not determine base type of view %s.', $this->view->id()));
       }
       $storage = \Drupal::entityTypeManager()->getStorage('field_storage_config')->load($entityType . '.' . $this->getExposedFilterFieldId());
       if (empty($storage)) {
@@ -117,16 +155,18 @@ class DefaultWidget extends FilterWidgetBase {
           $column = $this->getExposedFilterFieldId();
           $referenceColumn = $typeDefinition->getKey('id');
         }
-      } else {
+      }
+      else {
         $table = $entityType . '__' . $storage->getName();
         $column = $storage->getName() . '_' . $storage->getMainPropertyName();
       }
-    } else {
+    }
+    else {
       $column = $this->handler->definition['field'];
       $table = $this->handler->definition['table'];
     }
     if (empty($table) || empty($column)) {
-      throw new UnexpectedValueException(sprintf('Could not determine table or column for %s', $this->view->id()));
+      throw new \UnexpectedValueException(sprintf('Could not determine table or column for %s', $this->view->id()));
     }
     return [$table, $column, $referenceColumn];
   }
@@ -140,11 +180,27 @@ class DefaultWidget extends FilterWidgetBase {
    *   The field table.
    * @param string $column
    *   The value column.
+   * @param string $referenceColumn
+   *   The reference column.
    *
    * @return array|null
    *   The referenced values or null on error.
    */
-  protected function getReferencedValues(array $entityIds, string $table, string $column, string $referenceColumn = 'entity_id'): array {
+  protected function getReferencedValues(array $entityIds = [], string $table = '', string $column = '', string $referenceColumn = 'entity_id'): array {
+    if (empty($entityIds)) {
+      // Check if entity ids have been initialized.
+      $viewKey = $this->view->id() . '_' . $this->view->current_display;
+      if (!isset(self::$entityIds[$viewKey]['none'])) {
+        $entityIds = $this->getEntityIds();
+      }
+      else {
+        $entityIds = self::$entityIds[$viewKey]['none'];
+      }
+    }
+
+    if (empty($table)) {
+      [$table, $column, $referenceColumn] = $this->getTableAndColumn();
+    }
     $ids = [];
     if (!empty($entityIds)) {
       try {
@@ -156,10 +212,52 @@ class DefaultWidget extends FilterWidgetBase {
         }
       }
       catch (\Exception $e) {
-        $ids = NULL;
+        $ids = [];
       }
     }
     return $ids;
+  }
+
+  /**
+   * Return the available ids for this filter on the given relationship.
+   *
+   * @param string $relationship
+   *   The relationship to return the ids for.
+   *
+   * @return array
+   *   The available ids on this filter.
+   */
+  protected function getFilterIds($relationship = 'none') {
+    // Get table and columns for.
+    [$table, $column, $referenceColumn] = $this->getTableAndColumn();
+
+    // Check if entity ids have been initialized.
+    $entityIds = $this->getEntityIds($relationship);
+
+    // Check for cached values.
+    $cid = self::$baseCid[$this->getViewKey()] . '-' . $table . '-' . $column . '-' . $referenceColumn;
+    $cacheData = \Drupal::cache()->get($cid);
+    if ($cacheData) {
+      return $cacheData->data;
+    }
+    else {
+      $ids = $this->getReferencedValues($entityIds, $table, $column, $referenceColumn);
+      \Drupal::cache()->set($cid, $ids);
+      return $ids;
+    }
+  }
+
+  /**
+   * Return number of available ids for this filter on the given relationship.
+   *
+   * @param string $relationship
+   *   The relationship to return the count for.
+   *
+   * @return int
+   *   The count of available ids on this filter.
+   */
+  protected function getFilterCount($relationship) {
+    return count($this->getFilterIds($relationship));
   }
 
   /**
