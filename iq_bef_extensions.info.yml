@@ -8,3 +8,4 @@ core_version_requirement: ^9.5 || ^10
 dependencies:
   - better_exposed_filters:better_exposed_filters
   - vefl_bef:vefl_bef
+  - views_ajax_history:views_ajax_history
