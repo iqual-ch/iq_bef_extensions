@@ -138,4 +138,5 @@ class Single extends DefaultWidget {
 
     return $is_applicable;
   }
+
 }

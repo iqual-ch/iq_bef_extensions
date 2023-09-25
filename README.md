@@ -15,6 +15,9 @@ Settings for filter extension can be found in a view display's advanced settings
 A basic filter form layout
 To use the layout, change the style of the exposed filter form to "Better Exposed Filters (with layout)" and choose one of the given layouts
 
+Integration with views_ajax_history:
+This module bundles drupal/views_ajax_history and appropiate patches to allow GET views with filter values in URL.
+
 ## Setup & Installation
 
 Install module as usual:
@@ -28,7 +31,7 @@ If you want to work with layouts, make sure VEFL is compatible with BEF 5 by app
     composer patch-add drupal/vefl "Fix BEF 5 compatibility issue" https://www.drupal.org/files/issues/2020-07-28/3161777-fix-VeflBef.patch
     composer patch-add drupal/vefl "Render wrapped min/max" https://www.drupal.org/files/issues/2021-08-25/vefl-render_wrapped_min_max.patch
 
-## Configutation
+## Configuration
 
 ### General options
 - **Remove filter if not used**: If this option is enabled, the filter will be hidden if it has no effect on the result. This means: none of the resulting objects have values for the corresponding fields.
@@ -70,8 +73,6 @@ Example code:
 
     namespace Drupal\custom_module\Plugin\better_exposed_filters\filter;
 
-    use Drupal\Component\Utility\Html;
-    use Drupal\Core\Form\FormStateInterface;
     use Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter\DefaultWidget;
 
     /**

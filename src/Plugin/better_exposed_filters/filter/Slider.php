@@ -268,7 +268,7 @@ class Slider extends DefaultWidget {
             array_push($valueHistogram, max($valueHistogram) + $step);
           }
 
-          $numOfBins = max(array_keys($valueHistogram))+1;
+          $numOfBins = max(array_keys($valueHistogram)) + 1;
           $numOfValues = count($values);
 
           $dist = array_count_values(array_map(function ($value) use ($min, $max, $numOfBins) {
