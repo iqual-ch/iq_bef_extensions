@@ -55,11 +55,15 @@ class DefaultWidget extends FilterWidgetBase {
     $view->setItemsPerPage(0);
     $view->selective_filter = TRUE;
     $view->get_total_rows = TRUE;
-    $view->no_loading_entities = TRUE;
+    $view->only_retrieve_ids = TRUE;
 
     // Generate cache id based on total rows view.
+    $view->display_handler->setOption('cache', [
+      'type' => 'sort_agnostic_cache',
+    ]);
+
     /** @var Drupal\views\Plugin\views\cache\CachePluginBase $cachePlugin */
-    $cachePlugin = $this->view->display_handler->getPlugin('cache');
+    $cachePlugin = $view->display_handler->getPlugin('cache');
     self::$baseCid[$viewKey] = 'iq_bef_extensions:' . $cachePlugin->generateResultsKey();
     $cacheBin = \Drupal::cache('data');
 
