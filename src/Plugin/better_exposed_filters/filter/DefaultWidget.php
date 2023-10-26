@@ -55,6 +55,7 @@ class DefaultWidget extends FilterWidgetBase {
     $view->setItemsPerPage(0);
     $view->selective_filter = TRUE;
     $view->get_total_rows = TRUE;
+    $view->no_loading_entities = TRUE;
 
     // Generate cache id based on total rows view.
     /** @var Drupal\views\Plugin\views\cache\CachePluginBase $cachePlugin */
