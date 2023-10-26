@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\tg_product\Plugin\views\query;
+namespace Drupal\iq_bef_extensions\Plugin\views\query;
 
 use Drupal\Core\Database\DatabaseExceptionWrapper;
 use Drupal\views\Plugin\views\query\Sql;
@@ -104,10 +104,10 @@ class NoEntityLoadSql extends Sql {
 
         // Load all entities contained in the results.
         if (
-          !property_exists($view, 'no_loading_entities') ||
+          !property_exists($view, 'only_retrieve_ids') ||
           (
-            property_exists($view, 'no_loading_entities') &&
-            $view->no_loading_entities === FALSE
+            property_exists($view, 'only_retrieve_ids') &&
+            $view->only_retrieve_ids === FALSE
           )
         ) {
           $this->loadEntities($view->result);
