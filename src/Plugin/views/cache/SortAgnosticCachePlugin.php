@@ -2,6 +2,7 @@
 
 namespace Drupal\iq_bef_extensions\Plugin\views\cache;
 
+use Drupal\Core\Database\Query\SelectInterface;
 use Drupal\views\Plugin\views\cache\CachePluginBase;
 
 /**
