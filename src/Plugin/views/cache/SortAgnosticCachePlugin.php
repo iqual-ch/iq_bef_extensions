@@ -57,6 +57,11 @@ class SortAgnosticCachePlugin extends CachePluginBase {
    */
   public function generateResultsKey() {
     if (!isset($this->resultsKey)) {
+      // Ensure the view is build and query exists.
+      if (!$this->view->build) {
+        $this->view->build();
+      }
+
       $build_info = $this->view->build_info;
 
       foreach (['query', 'count_query'] as $index) {
