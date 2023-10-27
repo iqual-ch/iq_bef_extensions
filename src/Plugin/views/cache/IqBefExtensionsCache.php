@@ -19,69 +19,27 @@ use Drupal\views\Plugin\views\cache\CachePluginBase;
 class IqBefExtensionsCache extends CachePluginBase {
 
   /**
-   * Retrieve data from the cache.
-   *
-   * A plugin should override this to provide specialized caching behavior.
-   *
-   * @param string $type
-   *   The cache type, either 'query', 'result'.
-   *
-   * @return bool
-   *   TRUE if data has been taken from the cache, otherwise FALSE.
-   */
-  public function cacheGet($type) {
-    $cutoff = $this->cacheExpire($type);
-    switch ($type) {
-      case 'query':
-        // Not supported currently, but this is certainly where we'd put it.
-        return FALSE;
-
-      case 'results':
-        // Values to set: $view->result, $view->total_rows, $view->execute_time,
-        // $view->current_page.
-        if ($cache = \Drupal::cache($this->resultsBin)->get($this->generateResultsKey())) {
-          if (!$cutoff || $cache->created > $cutoff) {
-            $this->view->result = $cache->data['result'];
-            $this->view->total_rows = $cache->data['total_rows'];
-            $this->view->setCurrentPage(0, TRUE);
-            $this->view->execute_time = 0;
-            return TRUE;
-          }
-        }
-        return FALSE;
-    }
-  }
-
-  /**
    * Overrides the cache key generation to allow alteration.
    */
   public function generateResultsKey() {
     if (!isset($this->resultsKey)) {
-      // Ensure the view is build and query exists.
-      if (!$this->view->built) {
-        $this->view->build();
+
+      $key_data = [];
+      // Only exposed inputs should vary
+      foreach ($this->view->getExposedInput() as $key => $value) {
+        $key_data[$key] = $value;
       }
 
-      $build_info = $this->view->build_info;
+      $cache_contexts = $this->displayHandler->getCacheMetadata()->getCacheContexts();
 
-      foreach (['query', 'count_query'] as $index) {
-        // If the default query back-end is used generate SQL query strings from
-        // the query objects.
-        if ($build_info[$index] instanceof SelectInterface) {
-          $query = clone $build_info[$index];
-          $query->preExecute();
-          $build_info[$index] = [
-            'query' => (string) $query,
-            'arguments' => $query->getArguments(),
-          ];
-        }
-      }
+      \Drupal::moduleHandler()->invokeAll('alter_iq_bef_extension_cache_contexts',
+        [
+          $this->view,
+          &$cache_contexts,
+        ]
+      );
 
-      $key_data = [
-        'build_info' => $build_info,
-      ];
-
-      $key_data += \Drupal::service('cache_contexts_manager')->convertTokensToKeys($this->displayHandler->getCacheMetadata()->getCacheContexts())->getKeys();
+      $key_data += \Drupal::service('cache_contexts_manager')->convertTokensToKeys($cache_contexts)->getKeys();
 
       \Drupal::moduleHandler()->invokeAll('alter_iq_bef_extension_cache_key',
         [
