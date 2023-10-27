@@ -20,11 +20,20 @@ This module bundles drupal/views_ajax_history and appropiate patches to allow GE
 
 ## Setup & Installation
 
+### Installation on Drupal 9:
+
 Install module as usual:
 
     composer require iqual/iq_bef_extensions
     drush en iq_bef_extensions
 
+### Installation on Drupal 10:
+
+Dependency "drupal/vefl" does not have a Drupal 10 release. You need to use the `mglaman/composer-drupal-lenient` on your project to allow installation:
+
+    composer config minimum-stability dev
+    composer require mglaman/composer-drupal-lenient
+    composer config --merge --json extra.drupal-lenient.allowed-list '["drupal/vefl"]'
 
 If you want to work with layouts, make sure VEFL is compatible with BEF 5 by applying these patches:
 
