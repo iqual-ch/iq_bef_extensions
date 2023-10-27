@@ -58,7 +58,7 @@ class SortAgnosticCachePlugin extends CachePluginBase {
   public function generateResultsKey() {
     if (!isset($this->resultsKey)) {
       // Ensure the view is build and query exists.
-      if (!$this->view->build) {
+      if (!$this->view->built) {
         $this->view->build();
       }
 
@@ -83,7 +83,12 @@ class SortAgnosticCachePlugin extends CachePluginBase {
 
       $key_data += \Drupal::service('cache_contexts_manager')->convertTokensToKeys($this->displayHandler->getCacheMetadata()->getCacheContexts())->getKeys();
 
-      \Drupal::moduleHandler()->invokeAll('alter_iq_bef_extension_cache_key', [$key_data]);
+      \Drupal::moduleHandler()->invokeAll('alter_iq_bef_extension_cache_key',
+        [
+          $this->view,
+          &$key_data,
+        ]
+      );
 
       $this->resultsKey = $this->view->storage->id() . ':' . $this->displayHandler->display['id'] . ':results:' . hash('sha256', serialize($key_data));
     }
