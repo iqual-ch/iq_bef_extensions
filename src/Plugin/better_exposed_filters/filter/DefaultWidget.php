@@ -59,7 +59,7 @@ class DefaultWidget extends FilterWidgetBase {
 
     // Generate cache id based on total rows view.
     $view->display_handler->setOption('cache', [
-      'type' => 'sort_agnostic_cache',
+      'type' => 'iq_bef_extensions_query',
     ]);
 
     /** @var Drupal\views\Plugin\views\cache\CachePluginBase $cachePlugin */

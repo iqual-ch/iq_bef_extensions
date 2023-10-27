@@ -6,14 +6,14 @@ use Drupal\Core\Database\Query\SelectInterface;
 use Drupal\views\Plugin\views\cache\CachePluginBase;
 
 /**
- * Simple sort agnostic cache plugin for view using advanced select filter.
+ * Simple optimized cache plugin for ids listing for view using advanced select filter.
  *
  * @ingroup views_cache_plugins
  *
  * @ViewsCache(
- *   id = "sort_agnostic_cache",
- *   title = @Translation("Sort Agnostic Cache"),
- *   help = @Translation("A sort agnostic cache plugin.")
+ *   id = "iq_bef_extensions_cache",
+ *   title = @Translation("Iq Bef Extensions Cache"),
+ *   help = @Translation("An optimized cache plugin for ids listing.")
  * )
  */
 class SortAgnosticCachePlugin extends CachePluginBase {

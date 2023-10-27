@@ -14,12 +14,12 @@ use Drupal\views\Views;
  * @ingroup views_query_plugins
  *
  * @ViewsQuery(
- *   id = "no_entity_load_query",
+ *   id = "iq_bef_extensions_query",
  *   title = @Translation("SQL Query without entity load"),
  *   help = @Translation("Query will be generated and run using the Drupal database API.")
  * )
  */
-class NoEntityLoadSql extends Sql {
+class IqBefExtensionsQuery extends Sql {
 
   /**
    * Executes the query and fills associated view object with according values.
