@@ -16,7 +16,7 @@ use Drupal\views\Plugin\views\cache\CachePluginBase;
  *   help = @Translation("An optimized cache plugin for ids listing.")
  * )
  */
-class SortAgnosticCachePlugin extends CachePluginBase {
+class IqBefExtensionsCache extends CachePluginBase {
 
   /**
    * Retrieve data from the cache.
