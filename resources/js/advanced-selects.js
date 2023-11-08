@@ -12,11 +12,10 @@
           }).forEach(function (filterId) {
             let options = drupalSettings.iq_bef_extensions[befViewId].filters[filterId];
             var data_selector = 'edit-' + options.dataSelector;
-            var $input = $("select[data-drupal-selector=" + data_selector + "]", context).once('advanced-select-filter');
+            var $input = $(once("select[data-drupal-selector=" + data_selector + "]", 'advanced-select-filter', context));
 
             $("select[data-drupal-selector=" + data_selector + "]", context).each(function () {
-              $input = $(this);
-              $input.once('advanced-select-filter');
+              $input = $(once('advanced-select-filter', this));
 
               $input.parent().children().wrapAll('<div class="iq-bef-input-wrapper advanced-select"></div>')
               let select2options = {

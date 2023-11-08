@@ -26,6 +26,7 @@ advanced_selects:
   dependencies:
     - core/drupal
     - core/jquery
+    - core/once
 
 layout_standard:
   version: 4.x
