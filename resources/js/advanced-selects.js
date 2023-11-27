@@ -12,7 +12,7 @@
           }).forEach(function (filterId) {
             let options = drupalSettings.iq_bef_extensions[befViewId].filters[filterId];
             var data_selector = 'edit-' + options.dataSelector;
-            var $input = $(once("select[data-drupal-selector=" + data_selector + "]", 'advanced-select-filter', context));
+            var $input = $(once('advanced-select-filter', 'select[data-drupal-selector=" + data_selector + "]', context));
 
             $("select[data-drupal-selector=" + data_selector + "]", context).each(function () {
               $input = $(once('advanced-select-filter', this));
