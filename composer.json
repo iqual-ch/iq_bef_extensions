@@ -9,22 +9,24 @@
     }
   ],
   "require": {
-    "drupal/better_exposed_filters": "^5.0",
+    "php": "^8.1",
+    "drupal/core": "^9.5 || ^10",
+    "drupal/better_exposed_filters": "^6.0",
     "drupal/vefl": "^3.0",
     "drupal/views_ajax_history": "1.7"
   },
   "extra": {
     "patches": {
-      "drupal/core": {
-        "#956186: Allow AJAX to use GET requests": "https://www.drupal.org/files/issues/2023-03-30/956186-174-reroll-95-185.patch"
-      },
       "drupal/views_ajax_history": {
-        "#3364206: AJAX GET in core: Alter ajax url query parameters": "https://git.drupalcode.org/project/views_ajax_history/-/merge_requests/14/diffs.diff",
-        "#3216707: When we have selected filters and go back, all selected values was unchecked": "https://www.drupal.org/files/issues/2021-06-01/views_ajax_history-search_checkbox_in_form_values.patch",
-        "#3107126: Use Fullscreen Progress Indicator": "https://www.drupal.org/files/issues/2020-01-17/views_ajax_history-3107126-2.patch",
-        "#3090512: Views ajax history broken after page reload": "https://www.drupal.org/files/issues/2023-06-09/views_ajax_history-history_broken_page_reload-3090512-18.patch",
+        "[https://dgo.to/3364206]: AJAX GET in core: Alter ajax url query parameters": "https://git.drupalcode.org/project/views_ajax_history/-/merge_requests/14/diffs.diff",
+        "[https://dgo.to/3216707]: When we have selected filters and go back, all selected values was unchecked": "https://www.drupal.org/files/issues/2021-06-01/views_ajax_history-search_checkbox_in_form_values.patch",
+        "[https://dgo.to/3107126]: Use Fullscreen Progress Indicator": "https://www.drupal.org/files/issues/2020-01-17/views_ajax_history-3107126-2.patch",
+        "[https://dgo.to/3090512]: Views ajax history broken after page reload": "https://www.drupal.org/files/issues/2023-06-09/views_ajax_history-history_broken_page_reload-3090512-18.patch",
         "[https://dgo.to/3374112] - Remove display extenders from views on unistall": "https://www.drupal.org/files/issues/2023-07-12/3374112-2_remove_display_extenders_from_views_on_unistall.patch",
         "[https://dgo.to/3387287] - exposed query parameters added after existing hash": "https://git.drupalcode.org/project/views_ajax_history/-/merge_requests/15.diff"
+      },
+      "drupal/vefl": {
+        "[https://dgo.to/3344122] - Drupal 10 support?": "https://www.drupal.org/files/issues/2023-03-17/vefl-drupal10-compatibility.patch"
       }
     }
   }
