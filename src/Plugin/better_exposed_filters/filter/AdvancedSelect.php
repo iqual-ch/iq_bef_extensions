@@ -32,7 +32,24 @@ class AdvancedSelect extends DefaultWidget {
    * {@inheritdoc}
    */
   public static function isApplicable($filter = NULL, array $filter_options = []) {
-    return ($filter_options && ($filter_options['type'] == 'select' || $filter_options['widget'] == 'select' || (array_key_exists('group_info', $filter_options) && array_key_exists('widget', $filter_options['group_info']) && $filter_options['group_info']['widget'] == 'select')));
+    return (
+      $filter_options &&
+      (
+        (
+          isset($filter_options['type']) &&
+          $filter_options['type'] == 'select'
+        ) ||
+        (
+          isset($filter_options['widget']) &&
+          $filter_options['widget'] == 'select'
+        ) ||
+        (
+          array_key_exists('group_info', $filter_options) &&
+          array_key_exists('widget', $filter_options['group_info']) &&
+          $filter_options['group_info']['widget'] == 'select'
+        )
+      )
+    );
   }
 
   /**
