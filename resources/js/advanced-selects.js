@@ -50,9 +50,10 @@
 
               options.select2options = select2options;
               options.count = (function ($input) {
-                let $ul = $input.parent().find('ul');
+                let $wrapper = $input.parent();
                 return function () {
-                  let maxWidth = $ul.parent().innerWidth();
+                  let maxWidth = $wrapper.innerWidth(); 
+                  let $ul = $wrapper.find('ul');
                   let width = 0;
                   let count = 0;
                   if (maxWidth > 0) {
