@@ -15,7 +15,7 @@
             var $input = $(once('advanced-select-filter', 'select[data-drupal-selector=" + data_selector + "]', context));
 
             $("select[data-drupal-selector=" + data_selector + "]", context).each(function () {
-              $input = $(once('advanced-select-filter', this));
+              $input = $(this);
 
               $input.parent().children().wrapAll('<div class="iq-bef-input-wrapper advanced-select"></div>')
               let select2options = {
@@ -50,10 +50,9 @@
 
               options.select2options = select2options;
               options.count = (function ($input) {
-                let $wrapper = $input.parent();
                 return function () {
-                  let maxWidth = $wrapper.innerWidth(); 
-                  let $ul = $wrapper.find('ul');
+                  let $ul = $input.parent().find('ul');
+                  let maxWidth = $ul.parent().innerWidth();
                   let width = 0;
                   let count = 0;
                   if (maxWidth > 0) {
@@ -61,8 +60,8 @@
                       width += $(this).innerWidth();
                       $(this).show();
                       if (width + 35 > maxWidth) {
-                        count++;
-                        $(this).remove();
+                        $(this).hide();
+                        count = ($ul.find('li').length - $ul.find('li:visible').length)
                       }
                     });
                   }
@@ -88,6 +87,7 @@
 
               $input.on('select2:select select2:unselect', function (e) {
                 let $ul = $input.parent().find('ul').removeClass('has-counter');
+                $ul.find('.select2-selection__count').remove();
                 if (!$ul.find('.select2-selection__label').length) {
                   $ul.prepend('<li class="select2-selection__label">' + $ul.closest('.js-form-item').find('label').text() + '</li>');
                 }
@@ -100,9 +100,9 @@
                 if (count) {
                   $ul.addClass('has-counter');
                   if ($ul.find('.select2-selection__count').length < 1) {
-                    $ul.append('<li class="select2-selection__count">' + options.counter_prefix + $input.select2('data').length + '</li>')
+                    $ul.append('<li class="select2-selection__count">' + options.counter_prefix + count + '</li>')
                   }
-                  $ul.find('.select2-selection__count').text(options.counter_prefix + $input.select2('data').length);
+                  $ul.find('.select2-selection__count').text(options.counter_prefix + count);
                 }
               });
 
