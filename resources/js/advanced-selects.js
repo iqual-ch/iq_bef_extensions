@@ -52,7 +52,7 @@
               options.count = (function ($input) {
                 return function () {
                   let $ul = $input.parent().find('ul');
-                  let maxWidth = $ul.parent().innerWidth();
+                  let maxWidth = $ul.innerWidth();
                   let width = 0;
                   let count = 0;
                   if (maxWidth > 0) {
