@@ -87,6 +87,12 @@
             padding: 15px;
             flex: 1;
             flex-basis: 100%;
+
+            &:is(div) {
+              padding-bottom: 0;
+              padding-top: 0;
+            }
+
             @media only screen and (min-width: 768px) {
               flex-basis: 50%;
               max-width: 50%;
@@ -120,6 +126,10 @@
                 flex-basis: 33.33333%;
                 max-width: 33.33333%;
               }
+            }
+
+            > fieldset {
+              margin: 0
             }
 
             label{
