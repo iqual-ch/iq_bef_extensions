@@ -60,7 +60,9 @@
                       width += $(this).innerWidth();
                       $(this).show();
                       if (width + 35 > maxWidth) {
-                        $(this).hide();
+                        if (!$(this).hasClass('select2-selection__label')) {
+                          $(this).hide();
+                        }
                         count = ($ul.find('li').length - $ul.find('li:visible').length)
                       }
                     });
