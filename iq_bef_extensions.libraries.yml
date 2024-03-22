@@ -14,7 +14,7 @@ sliders:
     - core/jquery
 
 advanced_selects:
-  version: 4.x
+  version: 4.0.1
   css:
     theme:
       vendor/select2/css/select2.min.css: { minified: true }
