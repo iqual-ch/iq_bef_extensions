@@ -24,6 +24,10 @@
         "[https://dgo.to/3090512]: Views ajax history broken after page reload": "https://www.drupal.org/files/issues/2023-06-09/views_ajax_history-history_broken_page_reload-3090512-18.patch",
         "[https://dgo.to/3374112] - Remove display extenders from views on unistall": "https://www.drupal.org/files/issues/2023-07-12/3374112-2_remove_display_extenders_from_views_on_unistall.patch",
         "[https://dgo.to/3387287] - exposed query parameters added after existing hash": "https://git.drupalcode.org/project/views_ajax_history/-/merge_requests/15.diff"
+      },
+      "drupal/vefl": {
+        "[https://dgo.to/3161777]: Compability issue with BEF 8.x-5.0 and BEF 6.0.3": "https://www.drupal.org/files/issues/2020-07-28/3161777-fix-VeflBef.patch",
+        "[https://dgo.to/3188893]: Breaks layout after Drupal 9.1 update": "https://www.drupal.org/files/issues/2024-01-15/vefl-render_wrapped_min_max-drupal-10.patch"
       }
     }
   }
