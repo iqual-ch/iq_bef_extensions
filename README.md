@@ -38,7 +38,7 @@ Dependency "drupal/vefl" does not have a Drupal 10 release. You need to use the 
 If you want to work with layouts, make sure VEFL is compatible with BEF 5 by applying these patches:
 
     composer patch-add drupal/vefl "Fix BEF 5 compatibility issue" https://www.drupal.org/files/issues/2020-07-28/3161777-fix-VeflBef.patch
-    composer patch-add drupal/vefl "Render wrapped min/max" https://www.drupal.org/files/issues/2021-08-25/vefl-render_wrapped_min_max.patch
+    composer patch-add drupal/vefl "Render wrapped min/max" https://www.drupal.org/files/issues/2024-01-15/vefl-render_wrapped_min_max-drupal-10.patch
 
 ## Configuration
 
