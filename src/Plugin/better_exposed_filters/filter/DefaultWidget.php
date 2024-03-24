@@ -4,9 +4,9 @@ namespace Drupal\iq_bef_extensions\Plugin\better_exposed_filters\filter;
 
 use Drupal\better_exposed_filters\Plugin\better_exposed_filters\filter\FilterWidgetBase;
 use Drupal\Core\Cache\Cache;
+use Drupal\search_api\Item\Item;
 use Drupal\search_api\Plugin\views\query\SearchApiQuery;
 use Drupal\views\Views;
-use Drupal\search_api\Item\Item;
 
 /**
  * Base class for widgets.
@@ -51,14 +51,19 @@ class DefaultWidget extends FilterWidgetBase {
     $view = Views::getView($this->view->id());
     $view->setDisplay($this->view->current_display);
     $view->setArguments($this->view->args);
-    $view->setExposedInput([]);
+    $view->setExposedInput($this->view->getExposedInput());
     $view->setItemsPerPage(0);
     $view->selective_filter = TRUE;
     $view->get_total_rows = TRUE;
+    $view->only_retrieve_ids = TRUE;
 
     // Generate cache id based on total rows view.
+    $view->display_handler->setOption('cache', [
+      'type' => 'iq_bef_extensions_cache',
+    ]);
+
     /** @var Drupal\views\Plugin\views\cache\CachePluginBase $cachePlugin */
-    $cachePlugin = $this->view->display_handler->getPlugin('cache');
+    $cachePlugin = $view->display_handler->getPlugin('cache');
     self::$baseCid[$viewKey] = 'iq_bef_extensions:' . $cachePlugin->generateResultsKey();
     $cacheBin = \Drupal::cache('data');
 
@@ -273,9 +278,8 @@ class DefaultWidget extends FilterWidgetBase {
     // Append selected options to allowed keys.
     $exposedFilters = $this->view->getExposedInput();
     if (array_key_exists($this->handler->field, $exposedFilters)) {
-      $keys = array_unique(array_merge($keys, $exposedFilters[$this->handler->field]));
+      $keys = array_merge($keys, $exposedFilters[$this->handler->field]);
     }
-
     if ($keys !== NULL && !empty($element['#options'])) {
       foreach ($element['#options'] as $key => $option) {
         if ($key === 'All') {
@@ -286,6 +290,7 @@ class DefaultWidget extends FilterWidgetBase {
           $target_id = array_keys($option->option);
           $target_id = reset($target_id);
         }
+        $keys = array_unique($keys);
         if (!in_array($target_id, $keys)) {
           unset($element['#options'][$key]);
         }
