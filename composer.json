@@ -27,7 +27,7 @@
       },
       "drupal/vefl": {
         "[https://dgo.to/3161777]: Compability issue with BEF 8.x-5.0 and BEF 6.0.3": "https://www.drupal.org/files/issues/2020-07-28/3161777-fix-VeflBef.patch",
-        "[https://dgo.to/3188893]: Breaks layout after Drupal 9.1 update": "https://www.drupal.org/files/issues/2024-01-15/vefl-render_wrapped_min_max-drupal-10.patch"
+        "[https://dgo.to/3188893]: Breaks layout after Drupal 9.1 update": "https://www.drupal.org/files/issues/2024-02-07/3188893-5.patch"
       }
     }
   }
