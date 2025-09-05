@@ -126,8 +126,16 @@
                 let sliderMax = parseFloat(options.max);
 
                 if (tooltipFactor > 1) {
-                  sliderMin = Math.ceil(options.min / (tooltipFactor / 10)) * tooltipFactor / 10;
-                  sliderMax = Math.ceil(options.max / (tooltipFactor / 10)) * tooltipFactor / 10;
+                  let roundedMin = Math.ceil(options.min / (tooltipFactor / 10)) * tooltipFactor / 10;
+                  let roundedMax = Math.ceil(options.max / (tooltipFactor / 10)) * tooltipFactor / 10;
+
+                  if (roundedMin === roundedMax) {
+                    roundedMin = parseFloat(options.min);
+                    roundedMax = parseFloat(options.max);
+                  }
+
+                  sliderMin = roundedMin;
+                  sliderMax = roundedMax;
                 }
 
                 var defaultMin = parseFloat($min.val());
