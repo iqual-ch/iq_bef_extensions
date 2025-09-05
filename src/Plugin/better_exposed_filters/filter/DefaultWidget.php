@@ -51,15 +51,15 @@ class DefaultWidget extends FilterWidgetBase {
     $view = Views::getView($this->view->id());
     $view->setDisplay($this->view->current_display);
     $view->setArguments($this->view->args);
-    $view->setExposedInput([]);
+    $view->setExposedInput($this->view->getExposedInput());
     $view->setItemsPerPage(0);
     $view->selective_filter = TRUE;
     $view->get_total_rows = TRUE;
 
     // Generate cache id based on total rows view.
-    /** @var Drupal\views\Plugin\views\cache\CachePluginBase $cachePlugin */
-    $cachePlugin = $this->view->display_handler->getPlugin('cache');
-    self::$baseCid[$viewKey] = 'iq_bef_extensions:' . $cachePlugin->generateResultsKey();
+    // Total rows vary on exposed filters, so we include them in the cache id.
+    $exposedInputsHash = hash('sha256', serialize($this->view->getExposedInput()));
+    self::$baseCid[$viewKey] = 'iq_bef_extensions:' . $viewKey . ':entity_ids:' . $exposedInputsHash;
     $cacheBin = \Drupal::cache('data');
 
     // Only retrieve data once per request.
@@ -77,9 +77,8 @@ class DefaultWidget extends FilterWidgetBase {
       }
       else {
 
-        // Execute view to get the data.
-        $view->preExecute();
-        $view->execute();
+        // Build the view to get the query.
+        $view->build();
 
         // Get id key if Search Api is used as the backend.
         if (!$this->view->getQuery() instanceof SearchApiQuery) {
@@ -202,12 +201,17 @@ class DefaultWidget extends FilterWidgetBase {
       [$table, $column, $referenceColumn] = $this->getTableAndColumn();
     }
     $ids = [];
+    $idsLookup = [];
     if (!empty($entityIds)) {
       try {
-        $result = \Drupal::database()->select($table, 't')->condition('t.' . $referenceColumn, $entityIds, 'IN')->fields('t', [$column])->execute();
+        $result = \Drupal::database()->select($table, 't')
+          ->condition('t.' . $referenceColumn, $entityIds, 'IN')
+          ->fields('t', [$column])
+          ->execute();
         foreach ($result as $record) {
-          if ($record->{$column}) {
+          if ($record->{$column} && !isset($idsLookup[$record->{$column}])) {
             $ids[] = $record->{$column};
+            $idsLookup[$record->{$column}] = TRUE;
           }
         }
       }
