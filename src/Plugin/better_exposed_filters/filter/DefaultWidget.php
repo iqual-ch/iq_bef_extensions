@@ -58,7 +58,7 @@ class DefaultWidget extends FilterWidgetBase {
 
     // Generate cache id based on total rows view.
     // Total rows vary on exposed filters, so we include them in the cache id.
-    $exposedInputsHash = md5(json_encode($this->view->getExposedInput()));
+    $exposedInputsHash = hash('sha256', serialize($this->view->getExposedInput()));
     self::$baseCid[$viewKey] = 'iq_bef_extensions:' . $viewKey . ':entity_ids:' . $exposedInputsHash;
     $cacheBin = \Drupal::cache('data');
 
