@@ -201,12 +201,17 @@ class DefaultWidget extends FilterWidgetBase {
       [$table, $column, $referenceColumn] = $this->getTableAndColumn();
     }
     $ids = [];
+    $idsLookup = [];
     if (!empty($entityIds)) {
       try {
-        $result = \Drupal::database()->select($table, 't')->condition('t.' . $referenceColumn, $entityIds, 'IN')->fields('t', [$column])->execute();
+        $result = \Drupal::database()->select($table, 't')
+          ->condition('t.' . $referenceColumn, $entityIds, 'IN')
+          ->fields('t', [$column])
+          ->execute();
         foreach ($result as $record) {
-          if ($record->{$column} && !in_array($record->{$column}, $ids)) {
+          if ($record->{$column} && !isset($idsLookup[$record->{$column}])) {
             $ids[] = $record->{$column};
+            $idsLookup[$record->{$column}] = TRUE;
           }
         }
       }
