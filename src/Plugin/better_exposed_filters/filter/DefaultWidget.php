@@ -57,9 +57,9 @@ class DefaultWidget extends FilterWidgetBase {
     $view->get_total_rows = TRUE;
 
     // Generate cache id based on total rows view.
-    // Total rows vary on exposed filters, so we include them in the cache id.
-    $exposedInputsHash = hash('sha256', serialize($this->view->getExposedInput()));
-    self::$baseCid[$viewKey] = 'iq_bef_extensions:' . $viewKey . ':entity_ids:' . $exposedInputsHash;
+    /** @var Drupal\views\Plugin\views\cache\CachePluginBase $cachePlugin */
+    $cachePlugin = $this->view->display_handler->getPlugin('cache');
+    self::$baseCid[$viewKey] = 'iq_bef_extensions:' . $cachePlugin->generateResultsKey();
     $cacheBin = \Drupal::cache('data');
 
     // Only retrieve data once per request.
