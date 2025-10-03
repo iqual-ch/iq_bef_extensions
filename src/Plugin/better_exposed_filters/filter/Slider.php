@@ -275,13 +275,13 @@ class Slider extends DefaultWidget {
             return intval(floor(($value - $min) / $max * $numOfBins));
           }, $values));
 
-          array_walk($valueHistogram, function (&$value, $num) use ($dist, $numOfValues) {
+          array_walk($valueHistogram, function (&$value, $num) use ($dist, $numOfValues): void {
             $value = array_key_exists($num, $dist) ? $dist[$num] / $numOfValues * 100 : 0;
           });
 
           $maxValue = max($valueHistogram);
           if ($maxValue) {
-            array_walk($valueHistogram, function (&$value, $num) use ($maxValue) {
+            array_walk($valueHistogram, function (&$value, $num) use ($maxValue): void {
               $value = $value / $maxValue * 100;
             });
           }
