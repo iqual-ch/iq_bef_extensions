@@ -46,12 +46,20 @@ class DefaultWidget extends FilterWidgetBase {
   protected function getEntityIds($relationship = 'none'): array {
 
     $viewKey = $this->getViewKey();
+    $current_field = $this->handler->field;
+    $inputs = $this->view->getExposedInput();
+
+    // Remove the current field from exposed inputs to get unfiltered results.
+    $modifiedInputs = $inputs;
+    if (isset($current_field) && isset($modifiedInputs[$current_field])) {
+      unset($modifiedInputs[$current_field]);
+    }
 
     // Prepare the view using the total row query to acces the cache plugin.
     $view = Views::getView($this->view->id());
     $view->setDisplay($this->view->current_display);
     $view->setArguments($this->view->args);
-    $view->setExposedInput($this->view->getExposedInput());
+    $view->setExposedInput($modifiedInputs);
     $view->setItemsPerPage(0);
     $view->selective_filter = TRUE;
     $view->get_total_rows = TRUE;
@@ -59,21 +67,49 @@ class DefaultWidget extends FilterWidgetBase {
     // Generate cache id based on total rows view.
     /** @var Drupal\views\Plugin\views\cache\CachePluginBase $cachePlugin */
     $cachePlugin = $this->view->display_handler->getPlugin('cache');
-    self::$baseCid[$viewKey] = 'iq_bef_extensions:' . $cachePlugin->generateResultsKey();
+
+    // Initialize baseCid array for this view if not set.
+    if (!isset(self::$baseCid[$viewKey])) {
+      self::$baseCid[$viewKey] = [];
+    }
+
+    $baseCacheKey = 'iq_bef_extensions:' . $cachePlugin->generateResultsKey();
     $cacheBin = \Drupal::cache('data');
 
-    // Only retrieve data once per request.
+    // Initiate entity ids array.
     if (!isset(self::$entityIds[$viewKey]['none'])) {
-
       // Create arrays for entity ids.
       self::$entityIds[$viewKey] = [];
       // Index none contains the base entity type ids.
       self::$entityIds[$viewKey]['none'] = [];
+    }
 
+    // Instantiate exposed inputs state.
+    $filter_inputs = array_filter($modifiedInputs, function ($key) {
+      return !in_array($key, ['sort_by']);
+    }, ARRAY_FILTER_USE_KEY);
+
+    // Build input string for cache variation.
+    $input_string = '';
+    if (!empty($filter_inputs)) {
+      ksort($filter_inputs);
+      foreach ($filter_inputs as $key => $value) {
+        $input_string .= $key . ':' . (is_array($value) ? implode(',', $value) : $value) . ';';
+      }
+      $input_string = rtrim($input_string, ';');
+    }
+
+    // Store the cache ID for this input combination.
+    if (!isset(self::$baseCid[$viewKey][$input_string])) {
+      self::$baseCid[$viewKey][$input_string] = $baseCacheKey . ':' . md5($input_string);
+    }
+
+    // Check if we have cached data for this input state.
+    if (!isset(self::$entityIds[$viewKey]['none'][$input_string])) {
       // Check cache for data.
-      $cacheData = $cacheBin->get(self::$baseCid[$viewKey]);
+      $cacheData = $cacheBin->get(self::$baseCid[$viewKey][$input_string]);
       if ($cacheData) {
-        self::$entityIds[$viewKey]['none'] = $cacheData->data;
+        self::$entityIds[$viewKey]['none'][$input_string] = $cacheData->data;
       }
       else {
 
@@ -85,10 +121,8 @@ class DefaultWidget extends FilterWidgetBase {
           $entityIdKey = $view->getBaseEntityType()->getKey('id');
         }
 
-        // Create arrays for entity ids.
-        self::$entityIds[$viewKey] = [];
-        // Index none contains the base entity type ids.
-        self::$entityIds[$viewKey]['none'] = [];
+        // Initialize array for this input string.
+        self::$entityIds[$viewKey]['none'][$input_string] = [];
 
         // Retrieve the result from the view query.
         /** @var \Drupal\Core\Database\Query\Select $query */
@@ -99,26 +133,26 @@ class DefaultWidget extends FilterWidgetBase {
             // Handling search api.
             $match = [];
             preg_match('/([\d]+)/', $record->getId(), $match);
-            self::$entityIds[$viewKey]['none'][] = $match[0];
+            self::$entityIds[$viewKey]['none'][$input_string][] = $match[0];
           }
           else {
             // Handling database query.
-            self::$entityIds[$viewKey]['none'][] = $record->{$entityIdKey};
+            self::$entityIds[$viewKey]['none'][$input_string][] = $record->{$entityIdKey};
           }
         }
-        $cacheBin->set(self::$baseCid[$viewKey], self::$entityIds[$viewKey]['none'], Cache::PERMANENT, $this->view->getCacheTags());
+        $cacheBin->set(self::$baseCid[$viewKey][$input_string], self::$entityIds[$viewKey]['none'][$input_string], Cache::PERMANENT, $this->view->getCacheTags());
       }
     }
-    if ($relationship != 'none' && !isset(self::$entityIds[$viewKey][$relationship])) {
+    if ($relationship != 'none' && !isset(self::$entityIds[$viewKey][$relationship][$input_string])) {
       if (!empty($this->view->relationship[$relationship])) {
         $relHandler = $this->view->relationship[$relationship];
-        self::$entityIds[$viewKey][$relationship] = $this->getReferencedValues(self::$entityIds[$viewKey]['none'], $relHandler->table, $relHandler->realField);
+        self::$entityIds[$viewKey][$relationship][$input_string] = $this->getReferencedValues(self::$entityIds[$viewKey]['none'][$input_string], $relHandler->table, $relHandler->realField);
       }
       else {
         throw new \UnexpectedValueException('The given relationship cannot be found in the view.');
       }
     }
-    return self::$entityIds[$viewKey][$relationship];
+    return self::$entityIds[$viewKey][$relationship][$input_string];
   }
 
   /**
