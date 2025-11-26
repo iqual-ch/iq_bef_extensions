@@ -14,6 +14,15 @@ use Drupal\views\Views;
 class DefaultWidget extends FilterWidgetBase {
 
   /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration() {
+    return parent::defaultConfiguration() + [
+      'allow_current_filter_empty' => FALSE,
+    ];
+  }
+
+  /**
    * Contains the entity ids per view.
    *
    * @var array[]
@@ -40,6 +49,9 @@ class DefaultWidget extends FilterWidgetBase {
   /**
    * Loads the entity ids present in the current view execution.
    *
+   * @param string $relationship
+   *   The relationship to load the entity ids for.
+   *
    * @return array
    *   The entity ids present in the view.
    */
@@ -51,9 +63,14 @@ class DefaultWidget extends FilterWidgetBase {
     $view = Views::getView($this->view->id());
     $view->setDisplay($this->view->current_display);
     $view->setArguments($this->view->args);
-    // Remove the existing exposed input on this same filter.
+
     $exposedInputs = $this->view->getExposedInput();
-    unset($exposedInputs[$this->getExposedFilterFieldId()]);
+
+    if ($this->configuration['allow_current_filter_empty']) {
+      // Remove the existing exposed input on this same filter.
+      unset($exposedInputs[$this->getExposedFilterFieldId()]);
+    }
+
     $view->setExposedInput($exposedInputs);
     $view->setItemsPerPage(0);
     $view->selective_filter = TRUE;

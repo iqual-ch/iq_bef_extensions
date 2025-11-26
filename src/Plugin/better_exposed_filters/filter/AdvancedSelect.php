@@ -18,7 +18,7 @@ class AdvancedSelect extends DefaultWidget {
   /**
    * {@inheritdoc}
    */
-  public function defaultConfiguration(): array {
+  public function defaultConfiguration() {
     return parent::defaultConfiguration() + [
       'no_results_text' => NULL,
       'auto_submit' => FALSE,
@@ -31,14 +31,14 @@ class AdvancedSelect extends DefaultWidget {
   /**
    * {@inheritdoc}
    */
-  public static function isApplicable(mixed $filter = NULL, array $filter_options = []): bool {
+  public static function isApplicable($filter = NULL, array $filter_options = []) {
     return ($filter_options && ($filter_options['type'] == 'select' || $filter_options['widget'] == 'select' || (array_key_exists('group_info', $filter_options) && array_key_exists('widget', $filter_options['group_info']) && $filter_options['group_info']['widget'] == 'select')));
   }
 
   /**
    * {@inheritdoc}
    */
-  public function buildConfigurationForm(array $form, FormStateInterface $form_state): array {
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
 
     $form['auto_submit'] = [
@@ -66,6 +66,18 @@ class AdvancedSelect extends DefaultWidget {
       '#default_value' => $this->configuration['remove_unused_items'],
     ];
 
+    $form['allow_current_filter_empty'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Allow current filter to be empty'),
+      '#description' => $this->t('When calculating available options, ignore the current filter selection.'),
+      '#default_value' => $this->configuration['allow_current_filter_empty'],
+      '#state' => [
+        'visible' => [
+          ':input[name="settings[remove_unused_items]"]' => ['checked' => TRUE],
+        ],
+      ],
+    ];
+
     $form['remove_unused_filter'] = [
       '#type' => 'checkbox',
       '#title' => $this->t("Remove filter if not used"),
@@ -79,7 +91,7 @@ class AdvancedSelect extends DefaultWidget {
   /**
    * {@inheritdoc}
    */
-  public function exposedFormAlter(array &$form, FormStateInterface $form_state): void {
+  public function exposedFormAlter(array &$form, FormStateInterface $form_state) {
     $fieldId = $this->getExposedFilterFieldId();
     parent::exposedFormAlter($form, $form_state);
     $filter = $this->handler;
