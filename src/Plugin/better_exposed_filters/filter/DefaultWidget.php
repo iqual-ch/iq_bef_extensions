@@ -14,6 +14,15 @@ use Drupal\views\Views;
 class DefaultWidget extends FilterWidgetBase {
 
   /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration() {
+    return parent::defaultConfiguration() + [
+      'allow_current_filter_empty' => FALSE,
+    ];
+  }
+
+  /**
    * Contains the entity ids per view.
    *
    * @var array[]
