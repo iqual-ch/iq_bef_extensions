@@ -22,6 +22,7 @@ class Single extends DefaultWidget {
       'no_results_text' => NULL,
       'auto_submit' => FALSE,
       'remove_unused_filter' => FALSE,
+      'exclude_current_filter' => FALSE,
     ];
   }
 
