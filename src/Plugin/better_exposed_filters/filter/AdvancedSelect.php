@@ -66,6 +66,19 @@ class AdvancedSelect extends DefaultWidget {
       '#default_value' => $this->configuration['remove_unused_items'],
     ];
 
+
+    $form['allow_current_filter_empty'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Allow current filter to be empty'),
+      '#description' => $this->t('When calculating available options, ignore the current filter selection.'),
+      '#default_value' => $this->configuration['allow_current_filter_empty'],
+      '#state' => [
+        'visible' => [
+          ':input[name="exposed_form_options[bef][filter][' . $this->getExposedFilterFieldId() . '][configuration][remove_unused_items]"]' => ['checked' => TRUE],
+        ],
+      ],
+    ];
+
     $form['remove_unused_filter'] = [
       '#type' => 'checkbox',
       '#title' => $this->t("Remove filter if not used"),
