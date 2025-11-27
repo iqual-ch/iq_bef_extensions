@@ -49,6 +49,9 @@ class DefaultWidget extends FilterWidgetBase {
   /**
    * Loads the entity ids present in the current view execution.
    *
+   * @param string $relationship
+   *   The relationship to load the entity ids for.
+   *
    * @return array
    *   The entity ids present in the view.
    */
@@ -60,74 +63,85 @@ class DefaultWidget extends FilterWidgetBase {
     $view = Views::getView($this->view->id());
     $view->setDisplay($this->view->current_display);
     $view->setArguments($this->view->args);
-    $view->setExposedInput($this->view->getExposedInput());
+
+    $exposedInputs = $this->view->getExposedInput();
+
+    if ($this->configuration['allow_current_filter_empty']) {
+      // Remove the existing exposed input on this same filter.
+      unset($exposedInputs[$this->getExposedFilterFieldId()]);
+    }
+
+    $view->setExposedInput($exposedInputs);
     $view->setItemsPerPage(0);
     $view->selective_filter = TRUE;
     $view->get_total_rows = TRUE;
 
     // Generate cache id based on total rows view.
-    /** @var Drupal\views\Plugin\views\cache\CachePluginBase $cachePlugin */
-    $cachePlugin = $this->view->display_handler->getPlugin('cache');
-    self::$baseCid[$viewKey] = 'iq_bef_extensions:' . $cachePlugin->generateResultsKey();
+    self::$baseCid[$viewKey] = 'iq_bef_extensions:' . $viewKey . ':entity_ids';
     $cacheBin = \Drupal::cache('data');
 
     // Only retrieve data once per request.
+    // Create global static array to store entity ids per view.
     if (!isset(self::$entityIds[$viewKey]['none'])) {
 
       // Create arrays for entity ids.
       self::$entityIds[$viewKey] = [];
       // Index none contains the base entity type ids.
       self::$entityIds[$viewKey]['none'] = [];
+    }
+    // Total rows vary on exposed filters, so we include them in the cache id.
+    $exposedInputsHash = md5(json_encode($exposedInputs));
+    $cid = self::$baseCid[$viewKey] . ':' . $exposedInputsHash;
 
-      // Check cache for data.
-      $cacheData = $cacheBin->get(self::$baseCid[$viewKey]);
-      if ($cacheData) {
-        self::$entityIds[$viewKey]['none'] = $cacheData->data;
+    if (!isset(self::$entityIds[$viewKey][$exposedInputsHash])) {
+      self::$entityIds[$viewKey]['none'][$exposedInputsHash] = [];
+    }
+
+    // Check cache for data.
+    $cacheData = $cacheBin->get($cid);
+    if ($cacheData) {
+      self::$entityIds[$viewKey]['none'][$exposedInputsHash] = $cacheData->data;
+    }
+    else {
+      // Build the view to get the query.
+      $view->build();
+
+      // Get id key if Search Api is used as the backend.
+      if (!$this->view->getQuery() instanceof SearchApiQuery) {
+        $entityIdKey = $view->getBaseEntityType()->getKey('id');
       }
-      else {
 
-        // Build the view to get the query.
-        $view->build();
-
-        // Get id key if Search Api is used as the backend.
-        if (!$this->view->getQuery() instanceof SearchApiQuery) {
-          $entityIdKey = $view->getBaseEntityType()->getKey('id');
+      // Retrieve the result from the view query.
+      /** @var \Drupal\Core\Database\Query\Select $query */
+      $query = $view->query->query();
+      $result = $query->execute();
+      foreach ($result as $record) {
+        if ($record instanceof Item) {
+          // Handling search api.
+          $match = [];
+          preg_match('/([\d]+)/', $record->getId(), $match);
+          self::$entityIds[$viewKey]['none'][$exposedInputsHash][] = $match[0];
         }
-
-        // Create arrays for entity ids.
-        self::$entityIds[$viewKey] = [];
-        // Index none contains the base entity type ids.
-        self::$entityIds[$viewKey]['none'] = [];
-
-        // Retrieve the result from the view query.
-        /** @var \Drupal\Core\Database\Query\Select $query */
-        $query = $view->query->query();
-        $result = $query->execute();
-        foreach ($result as $record) {
-          if ($record instanceof Item) {
-            // Handling search api.
-            $match = [];
-            preg_match('/([\d]+)/', $record->getId(), $match);
-            self::$entityIds[$viewKey]['none'][] = $match[0];
-          }
-          else {
-            // Handling database query.
-            self::$entityIds[$viewKey]['none'][] = $record->{$entityIdKey};
-          }
+        else {
+          // Handling database query.
+          self::$entityIds[$viewKey]['none'][$exposedInputsHash][] = $record->{$entityIdKey};
         }
-        $cacheBin->set(self::$baseCid[$viewKey], self::$entityIds[$viewKey]['none'], Cache::PERMANENT, $this->view->getCacheTags());
       }
+      $cacheBin->set($cid, self::$entityIds[$viewKey]['none'][$exposedInputsHash], Cache::PERMANENT, $this->view->getCacheTags());
     }
     if ($relationship != 'none' && !isset(self::$entityIds[$viewKey][$relationship])) {
+      self::$entityIds[$viewKey][$relationship] = [];
+    }
+    if ($relationship != 'none' && !isset(self::$entityIds[$viewKey][$relationship][$exposedInputsHash])) {
       if (!empty($this->view->relationship[$relationship])) {
         $relHandler = $this->view->relationship[$relationship];
-        self::$entityIds[$viewKey][$relationship] = $this->getReferencedValues(self::$entityIds[$viewKey]['none'], $relHandler->table, $relHandler->realField);
+        self::$entityIds[$viewKey][$relationship][$exposedInputsHash] = $this->getReferencedValues(self::$entityIds[$viewKey]['none'][$exposedInputsHash], $relHandler->table, $relHandler->realField);
       }
       else {
         throw new \UnexpectedValueException('The given relationship cannot be found in the view.');
       }
     }
-    return self::$entityIds[$viewKey][$relationship];
+    return self::$entityIds[$viewKey][$relationship][$exposedInputsHash] ?? [];
   }
 
   /**
