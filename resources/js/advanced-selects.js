@@ -1,4 +1,14 @@
 (function ($, Drupal, drupalSettings, once) {
+
+  // Disable core's SetBrowserUrl AJAX command (Drupal 11+) which writes
+  // exposed filter params into the browser URL. The ajax_view.js constructor
+  // only matches input[name="..."] when reading those params back, missing
+  // <select> elements entirely. This causes stale params to get permanently
+  // baked into the AJAX request URL, breaking filter removal.
+  if (Drupal.AjaxCommands && Drupal.AjaxCommands.prototype.setBrowserUrl) {
+    Drupal.AjaxCommands.prototype.setBrowserUrl = function () { };
+  }
+
   Drupal.behaviors.iq_bef_extensions_advanced_select = {
     attach: function (context, settings) {
 
