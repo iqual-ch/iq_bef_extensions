@@ -1,5 +1,4 @@
 sliders:
-  version: 4.x
   css:
     theme:
       vendor/noUiSlider/nouislider.min.css: { minified: true }
@@ -14,7 +13,6 @@ sliders:
     - core/jquery
 
 advanced_selects:
-  version: 4.0.1
   css:
     theme:
       vendor/select2/css/select2.min.css: { minified: true }
@@ -27,9 +25,9 @@ advanced_selects:
     - core/drupal
     - core/jquery
     - core/once
+    - views/views.ajax
 
 layout_standard:
-  version: 4.x
   css:
     theme:
       resources/css/layout-standard.css: { minified: true }
