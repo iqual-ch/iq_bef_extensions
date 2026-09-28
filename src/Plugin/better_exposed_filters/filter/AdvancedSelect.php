@@ -25,6 +25,7 @@ class AdvancedSelect extends DefaultWidget {
       'remove_unused_items' => FALSE,
       'remove_unused_filter' => FALSE,
       'counter_prefix' => '+',
+      'exclude_current_filter' => FALSE,
     ];
   }
 
@@ -73,6 +74,18 @@ class AdvancedSelect extends DefaultWidget {
       '#default_value' => $this->configuration['remove_unused_filter'],
     ];
 
+    $form['exclude_current_filter'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t("Calculate options excluding current filter"),
+      '#description' => $this->t("When removing unused items, calculate available options based on other filters but exclude this filter's current selection. This allows users to see and select other options that would have results."),
+      '#default_value' => $this->configuration['exclude_current_filter'],
+      '#states' => [
+        'visible' => [
+          ':input[name="exposed_form_options[bef][filter][' . $this->getExposedFilterFieldId() . '][configuration][remove_unused_items]"]' => ['checked' => TRUE],
+        ],
+      ],
+    ];
+
     return $form;
   }
 
@@ -93,7 +106,14 @@ class AdvancedSelect extends DefaultWidget {
     ) {
 
       $relationship = $filter->options['relationship'] ?: 'none';
-      $ids = $this->getFilterIds($relationship);
+      
+      // Use the new method if exclude_current_filter is enabled
+      if (!empty($this->configuration['exclude_current_filter'])) {
+        $ids = $this->getFilterIdsExcludingCurrent($relationship);
+      } else {
+        $ids = $this->getFilterIds($relationship);
+      }
+      
       if (
         empty($ids)
         && !empty($this->configuration['remove_unused_filter'])

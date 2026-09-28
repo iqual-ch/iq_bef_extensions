@@ -252,6 +252,82 @@ class DefaultWidget extends FilterWidgetBase {
   }
 
   /**
+   * Return the available ids for this filter excluding current filter input.
+   *
+   * @param string $relationship
+   *   The relationship to return the ids for.
+   *
+   * @return array
+   *   The available ids on this filter.
+   */
+  protected function getFilterIdsExcludingCurrent($relationship = 'none') {
+    $viewKey = $this->getViewKey();
+
+    // Prepare a view copy excluding current filter input
+    $view = Views::getView($this->view->id());
+    $view->setDisplay($this->view->current_display);
+    $view->setArguments($this->view->args);
+    
+    // Get current exposed input and remove this filter's values
+    $exposedInput = $this->view->getExposedInput();
+    $currentFilterKey = $this->handler->field;
+    if (isset($exposedInput[$currentFilterKey])) {
+      unset($exposedInput[$currentFilterKey]);
+    }
+    
+    $view->setExposedInput($exposedInput);
+    $view->setItemsPerPage(0);
+    $view->selective_filter = TRUE;
+    $view->get_total_rows = TRUE;
+
+    // Generate cache id that includes the excluded filter info
+    /** @var Drupal\views\Plugin\views\cache\CachePluginBase $cachePlugin */
+    $cachePlugin = $view->display_handler->getPlugin('cache');
+    $cid = 'iq_bef_extensions_excl:' . $cachePlugin->generateResultsKey() . '-' . $currentFilterKey;
+
+    // Check cache first
+    $cacheBin = \Drupal::cache('data');
+    $cacheData = $cacheBin->get($cid);
+    if ($cacheData) {
+      $entityIds = $cacheData->data;
+    }
+    else {
+      // Build the view to get the query without current filter
+      $view->build();
+      
+      $entityIds = [];
+      
+      // Get id key if Search Api is used as the backend.
+      if (!$view->getQuery() instanceof SearchApiQuery) {
+        $entityIdKey = $view->getBaseEntityType()->getKey('id');
+      }
+
+      // Retrieve the result from the view query.
+      /** @var \Drupal\Core\Database\Query\Select $query */
+      $query = $view->query->query();
+      $result = $query->execute();
+      foreach ($result as $record) {
+        if ($record instanceof Item) {
+          // Handling search api.
+          $match = [];
+          preg_match('/([\d]+)/', $record->getId(), $match);
+          $entityIds[] = $match[0];
+        }
+        else {
+          // Handling database query.
+          $entityIds[] = $record->{$entityIdKey};
+        }
+      }
+      
+      $cacheBin->set($cid, $entityIds, Cache::PERMANENT, $view->getCacheTags());
+    }
+
+    // Now get the referenced values using the filtered entity IDs
+    [$table, $column, $referenceColumn] = $this->getTableAndColumn();
+    return $this->getReferencedValues($entityIds, $table, $column, $referenceColumn);
+  }
+
+  /**
    * Return number of available ids for this filter on the given relationship.
    *
    * @param string $relationship
@@ -274,10 +350,15 @@ class DefaultWidget extends FilterWidgetBase {
    */
   protected function filterElementWithOptions(array &$element, array $keys) {
 
-    // Append selected options to allowed keys.
-    $exposedFilters = $this->view->getExposedInput();
-    if (array_key_exists($this->handler->field, $exposedFilters)) {
-      $keys = array_unique(array_merge($keys, $exposedFilters[$this->handler->field]));
+    // Check if we should exclude current filter from calculation
+    $excludeCurrentFilter = !empty($this->configuration['exclude_current_filter']);
+    
+    if (!$excludeCurrentFilter) {
+      // Append selected options to allowed keys.
+      $exposedFilters = $this->view->getExposedInput();
+      if (array_key_exists($this->handler->field, $exposedFilters)) {
+        $keys = array_unique(array_merge($keys, $exposedFilters[$this->handler->field]));
+      }
     }
 
     if ($keys !== NULL && !empty($element['#options'])) {

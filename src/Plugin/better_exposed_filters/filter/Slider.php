@@ -34,6 +34,7 @@ class Slider extends DefaultWidget {
       'apply_filter_text' => $this->t('OK'),
       'reset_filter_text' => $this->t('Reset'),
       'remove_unused_filter' => FALSE,
+      'exclude_current_filter' => FALSE,
     ];
   }
 
