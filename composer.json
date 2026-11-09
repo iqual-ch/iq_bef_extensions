@@ -29,8 +29,8 @@
         "[https://dgo.to/3387287] - exposed query parameters added after existing hash": "https://git.drupalcode.org/project/views_ajax_history/-/merge_requests/15/diffs.diff?diff_id=571297"
       },
       "drupal/vefl": {
-        "[https://dgo.to/3161777]: Compability issue with BEF 7": "https://git.drupalcode.org/project/vefl/-/merge_requests/5.diff",
-        "[https://dgo.to/3188893]: Breaks layout after Drupal 9.1 update": "https://git.drupalcode.org/project/vefl/-/merge_requests/4.diff"
+        "[https://dgo.to/3161777]: Compability issue with BEF 7": "https://git.drupalcode.org/project/vefl/-/merge_requests/5/diffs.diff?diff_id=1058177",
+        "[https://dgo.to/3188893]: Breaks layout after Drupal 9.1 update": "https://git.drupalcode.org/project/vefl/-/merge_requests/4/diffs.diff?diff_id=1683776"
       }
     }
   }
